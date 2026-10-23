@@ -11,7 +11,6 @@
   h1 { margin: 0 0 12px; font-size: 1.5em; }
   h2 { margin: 0 0 8px; font-size: 1.2em; }
   h3 { margin: 0 0 8px; font-size: 1.05em; }
-
   header { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
   .card { border: 1px solid #8884; border-radius: 12px; padding: 16px; margin: 12px 0; }
 
@@ -29,16 +28,27 @@
   label > span { display: block; font-size: 13px; opacity: .85; margin-bottom: 4px; }
 
   nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
-  nav button { width: auto; }
+  nav button { width: auto; position: relative; }
   nav button.active { font-weight: 700; background: #8883; }
+  nav .badge-num {
+    position: absolute; top: -6px; right: -6px;
+    background: #b91c1c; color: #fff; font-size: 11px;
+    padding: 0 6px; border-radius: 999px; min-width: 18px; text-align: center;
+  }
 
   .badge { background: #8883; border-radius: 999px; padding: 2px 10px; font-size: 12px; }
+  .service-badge {
+    background: linear-gradient(135deg, rgba(200,165,0,.2), rgba(200,165,0,.05));
+    border: 1px solid rgba(200,165,0,.5);
+    border-radius: 999px; padding: 2px 10px; font-size: 12px;
+  }
   .muted { opacity: .6; }
   .err   { color: #c33; }
   .ok    { color: #3a7d44; }
 
   .app-item { border: 1px solid #8884; border-radius: 12px; padding: 12px; margin: 10px 0; }
   .app-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .app-id { font-family: monospace; font-size: 12px; opacity: .7; }
   .app-fields { margin: 8px 0; display: grid; gap: 4px; font-size: 14px; }
   .app-fields > div > b { opacity: .75; font-weight: 600; }
   .status { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #8883; white-space: nowrap; }
@@ -54,6 +64,8 @@
   .filter { display: flex; gap: 6px; margin: 8px 0; flex-wrap: wrap; }
   .filter button { width: auto; padding: 4px 12px; font-size: 14px; }
   .filter button.active { background: #8883; font-weight: 700; }
+
+  .search-row input { width: 100%; }
 
   .user-row {
     display: grid; grid-template-columns: 1fr 150px 1fr;
@@ -71,10 +83,7 @@
     border: 1px solid #8884; border-radius: 12px; padding: 14px; margin: 10px 0;
     background: linear-gradient(135deg, rgba(200,180,90,.12), transparent);
   }
-  .doc-title {
-    display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline;
-    font-weight: 700; font-size: 1.05em; margin-bottom: 6px;
-  }
+  .doc-title { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; font-weight: 700; font-size: 1.05em; margin-bottom: 6px; }
   .doc-row { display: flex; gap: 12px; padding: 2px 0; font-size: 14px; }
   .doc-row > span:first-child { opacity: .7; min-width: 120px; }
   .doc-row > span:last-child { word-break: break-word; }
@@ -82,6 +91,33 @@
   .doc-status.active  { background: #3a7d4433; }
   .doc-status.pending { background: #b8860b33; }
   .doc-status.revoked { background: #b91c1c33; }
+
+  .news-item { border-left: 3px solid #2563eb; padding-left: 12px; margin: 14px 0; }
+  .news-item.pinned { border-color: #b8860b; }
+  .news-title { font-weight: 600; font-size: 1.02em; }
+  .news-meta { font-size: 12px; opacity: .6; }
+  .news-body { white-space: pre-wrap; margin-top: 6px; font-size: 14px; }
+
+  .wanted-card { border: 1px solid #8884; border-left: 4px solid #b91c1c; border-radius: 10px; padding: 12px; margin: 10px 0; }
+  .wanted-card.detained { border-left-color: #b8860b; }
+  .wanted-card.cleared  { border-left-color: #666; opacity: .7; }
+  .wanted-status { font-size: 12px; padding: 2px 8px; border-radius: 999px; }
+  .wanted-status.wanted   { background: #b91c1c33; }
+  .wanted-status.detained { background: #b8860b33; }
+  .wanted-status.cleared  { background: #88888833; }
+
+  .draft-banner {
+    background: rgba(184,134,11,.15);
+    border: 1px dashed rgba(184,134,11,.6);
+    border-radius: 10px; padding: 10px 14px; margin: 10px 0;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+  .unread-banner {
+    background: rgba(58,125,68,.15);
+    border: 1px solid rgba(58,125,68,.5);
+    border-radius: 10px; padding: 10px 14px; margin: 10px 0;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
 
   .admin-section { border-top: 1px solid #8884; margin-top: 16px; padding-top: 16px; }
   .inline { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
