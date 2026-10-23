@@ -248,7 +248,7 @@ function downloadApp(a, id) {
   const msgs = Object.entries(a.messages || {})
     .sort((x, y) => (x[1].createdAt || 0) - (y[1].createdAt || 0));
 
-  const L = ["=" .repeat(62), "ЖАКИДУСЛУГИ · РЕСПУБЛИКА ЖАКИД", "АРХИВНАЯ КОПИЯ ЗАЯВЛЕНИЯ", "=".repeat(62), ""];
+  const L = ["=".repeat(62), "ЖАКИДУСЛУГИ · РЕСПУБЛИКА ЖАКИД", "АРХИВНАЯ КОПИЯ ЗАЯВЛЕНИЯ", "=".repeat(62), ""];
   L.push(`ID заявления:  ${shortId(id)} (${id})`);
   L.push(`Категория:     ${cat?.name || a.category}`);
   L.push(`Статус:        ${STATUS[a.status] || a.status}`);
@@ -862,34 +862,54 @@ function mountApps(view) {
       } catch (err) { view.querySelector("#e-new").textContent = "Ошибка: " + err.message; }
     };
 
+    // ── ИСПРАВЛЕННЫЙ ОБРАБОТЧИК ОТПРАВКИ ──
     form.onsubmit = async e => {
       e.preventDefault();
       const cat = catSel.value;
       const fd  = new FormData(e.target);
       const fields = {};
       for (const f of (categories[cat]?.fields || [])) fields[f.key] = fd.get(f.key) ?? "";
+
       if (!fields.subject) {
         view.querySelector("#e-new").className = "err";
         view.querySelector("#e-new").textContent = "Заполните поле «Тема».";
         return;
       }
+      if (Object.keys(fields).length === 0) {
+        view.querySelector("#e-new").className = "err";
+        view.querySelector("#e-new").textContent =
+          "Ошибка: у категории нет полей. Обновите страницу (Ctrl+Shift+R) или нажмите в админке «Установить стандартные категории».";
+        return;
+      }
+
       const id = push(ref(db, "applications")).key;
       try {
+        // Шаг 1: создаём заявление — правило создания уже разрешает эту запись.
+        await set(ref(db, `applications/${id}`), {
+          uid: me.uid,
+          authorName: me.displayName || me.email,
+          category: cat,
+          status: "sent",
+          createdAt: Date.now(),
+          fields
+        });
+
+        // Шаг 2: индексы. staffQueue-правило теперь видит applications/$id/uid === auth.uid.
         await update(ref(db), {
-          [`applications/${id}`]: {
-            uid: me.uid, authorName: me.displayName || me.email,
-            category: cat, status: "sent", createdAt: Date.now(), fields
-          },
           [`userApps/${me.uid}/${id}`]: true,
           [`staffQueue/${cat}/${id}`]:  true
         });
+
+        // Шаг 3: чистим черновик (если был)
         await remove(ref(db, `drafts/${me.uid}`)).catch(() => {});
+
         e.target.reset();
         paintForm();
         view.querySelector("#draft-slot").innerHTML = "";
         view.querySelector("#e-new").className = "err";
         view.querySelector("#e-new").textContent = "";
       } catch (err) {
+        view.querySelector("#e-new").className = "err";
         view.querySelector("#e-new").textContent = "Ошибка: " + err.message;
       }
     };
@@ -923,6 +943,13 @@ function mountApps(view) {
   listEl.addEventListener("submit", onReply);
 
   const items = new Map();
+  const applySearch = () => {
+    const q = (search.value || "").toLowerCase().trim();
+    for (const { node } of items.values()) {
+      node.hidden = q && !(node.dataset.search || "").includes(q);
+    }
+  };
+
   sub(onValue(ref(db, `userApps/${me.uid}`), snap => {
     const ids = Object.keys(snap.val() || {});
     emptyEl.hidden = ids.length > 0;
@@ -952,12 +979,6 @@ function mountApps(view) {
     applySearch();
   }));
 
-  const applySearch = () => {
-    const q = (search.value || "").toLowerCase().trim();
-    for (const { node } of items.values()) {
-      node.hidden = q && !(node.dataset.search || "").includes(q);
-    }
-  };
   search.oninput = applySearch;
 }
 
@@ -1185,7 +1206,8 @@ function mountProfile(view) {
       if (data.serviceType) {
         const tmp = document.createElement("span");
         tmp.innerHTML = renderServiceBadge();
-        header.querySelector(".badge").after(tmp.firstChild);
+        const badgeEl = header.querySelector(".badge");
+        if (badgeEl) badgeEl.after(tmp.firstChild);
       }
     } catch (err) {
       view.querySelector("#prof-err").textContent = "Ошибка: " + err.message;
@@ -1601,4 +1623,4 @@ function mountAdmin(view) {
       }
     } catch (err) { alert(err.message); }
   };
-        }
+       }
