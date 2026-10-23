@@ -283,6 +283,7 @@ function observeAsReceived(appId, node) {
   receivedObservers.set(appId, obs);
 }
 
+/* ═══════════════ ИСПРАВЛЕННОЕ УДАЛЕНИЕ ═══════════════ */
 async function deleteApplication(appId) {
   const snap = await get(ref(db, `applications/${appId}`));
   const a = snap.val();
@@ -293,13 +294,24 @@ async function deleteApplication(appId) {
   await new Promise(r => setTimeout(r, 400));
 
   try {
+    // Шаг 1: удаляем индексы, ПОКА applications/$appId ещё существует.
+    // Тогда правило userApps (root.child('applications').child($appId).exists())
+    // видит true и пропускает удаление.
     await update(ref(db), {
-      [`applications/${appId}`]:             null,
       [`userApps/${a.uid}/${appId}`]:        null,
-      [`staffQueue/${a.category}/${appId}`]: null,
-      [`applicationNotes/${appId}`]:         null
+      [`staffQueue/${a.category}/${appId}`]: null
     });
-  } catch (e) { alert("Не удалось удалить: " + e.message); }
+
+    // Шаг 2: удаляем само заявление.
+    // Индексов уже нет, правило applications для удаления пропускает.
+    await set(ref(db, `applications/${appId}`), null);
+
+    // Шаг 3 (best-effort): чистим заметки. Если прав нет — молча пропускаем,
+    // данные просто останутся в БД, на работу это не влияет.
+    remove(ref(db, `applicationNotes/${appId}`)).catch(() => {});
+  } catch (e) {
+    alert("Не удалось удалить: " + e.message);
+  }
 }
 
 /* ═══════════════ УВЕДОМЛЕНИЯ ═══════════════ */
@@ -1152,7 +1164,7 @@ function mountProfile(view) {
   };
 }
 
-/* ═══════════════ ОЧЕРЕДЬ (ПЕРЕПИСАНО) ═══════════════ */
+/* ═══════════════ ОЧЕРЕДЬ ═══════════════ */
 
 async function mountQueue(view) {
   view.innerHTML = `
@@ -1173,7 +1185,6 @@ async function mountQueue(view) {
   const diag = view.querySelector("#q-diag");
   let filter = "all";
 
-  // 1. Загружаем актуальные categories из БД
   try {
     const catsSnap = await get(ref(db, "categories"));
     const dbCats = catsSnap.val() || {};
@@ -1182,7 +1193,6 @@ async function mountQueue(view) {
 
   const activeCats = Object.keys(categories).length > 0 ? categories : DEFAULT_CATEGORIES;
 
-  // 2. Определяем, какие категории показывать
   let showCats;
   if (role === "admin") {
     showCats = Object.keys(activeCats);
@@ -1191,7 +1201,6 @@ async function mountQueue(view) {
     showCats = Object.keys(s.val() || {}).filter(c => c !== "documents");
   }
 
-  // 3. Добавляем категории из staffQueue (даже если их нет в categories)
   let queueCats = [];
   try {
     const queueSnap = await get(ref(db, "staffQueue"));
@@ -1200,8 +1209,6 @@ async function mountQueue(view) {
     if (role === "admin") {
       for (const c of queueCats) if (!showCats.includes(c)) showCats.push(c);
     } else {
-      // сотруднику тоже показываем то, что реально в его staffQueue (но не чужие категории)
-      // find which queueCats intersect with staffCategories
       const staffCatsSet = new Set(Object.keys((await get(ref(db, `staffCategories/${me.uid}`))).val() || {}));
       for (const c of queueCats) {
         if (staffCatsSet.has(c) && !showCats.includes(c)) showCats.push(c);
@@ -1222,7 +1229,6 @@ async function mountQueue(view) {
     return;
   }
 
-  // 4. Список сотрудников для dropdown «Ответственный»
   let staffList = [];
   try {
     const rolesSnap = await get(ref(db, "roles"));
@@ -1258,14 +1264,12 @@ async function mountQueue(view) {
   };
   search.oninput = applyFilters;
 
-  // 5. Сортируем по order
   showCats.sort((a, b) => {
     const oa = activeCats[a]?.order ?? DEFAULT_CATEGORIES[a]?.order ?? 999;
     const ob = activeCats[b]?.order ?? DEFAULT_CATEGORIES[b]?.order ?? 999;
     return oa - ob;
   });
 
-  // 6. Рендерим блоки
   for (const cat of showCats) {
     const block = document.createElement("section");
     block.className = "card";
@@ -1455,7 +1459,6 @@ function mountAdmin(view) {
       </p>
     </section>`;
 
-  // ── seed ──
   view.querySelector("#seed-cats").onclick = async () => {
     if (!confirm("Перезаписать все категории стандартным набором?")) return;
     try {
@@ -1464,7 +1467,6 @@ function mountAdmin(view) {
     } catch (e) { view.querySelector("#seed-msg").textContent = "Ошибка: " + e.message; }
   };
 
-  // ── пересобрать индексы ──
   view.querySelector("#rebuild-indexes").onclick = async () => {
     if (!confirm("Пересобрать индексы userApps и staffQueue по всем заявлениям?")) return;
     const msg = view.querySelector("#rebuild-msg");
@@ -1513,7 +1515,6 @@ function mountAdmin(view) {
     } catch (e) { msg.textContent = "Ошибка: " + e.message; }
   };
 
-  // ── FAQ ──
   view.querySelector("#f-faq").onsubmit = async e => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -1544,7 +1545,6 @@ function mountAdmin(view) {
     catch (err) { alert(err.message); }
   };
 
-  // ── новости ──
   view.querySelector("#f-news").onsubmit = async e => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -1576,7 +1576,6 @@ function mountAdmin(view) {
     catch (err) { alert(err.message); }
   };
 
-  // ── розыск ──
   view.querySelector("#f-wanted").onsubmit = async e => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -1606,7 +1605,6 @@ function mountAdmin(view) {
     catch (err) { alert(err.message); }
   };
 
-  // ── пользователи / роли ──
   let users = {}, roles = {}, scats = {};
   const paintUsers = () => {
     const box = view.querySelector("#user-list");
@@ -1642,4 +1640,4 @@ function mountAdmin(view) {
       }
     } catch (err) { alert(err.message); }
   };
-       }
+}
