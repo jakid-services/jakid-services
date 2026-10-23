@@ -96,12 +96,12 @@ const DEFAULT_CATEGORIES = {
   citizenship: {
     name: "Гражданство (получение / продление)", order: 7,
     fields: [
-      { key: "subject",            label: "Кратко о запросе",      type: "text",     required: true },
-      { key: "action",             label: "Действие",              type: "select",   required: true, options: ["Получение", "Продление", "Восстановление", "Выход"] },
-      { key: "currentCitizenship", label: "Текущее гражданство",   type: "text",     required: true },
-      { key: "birthDate",          label: "Дата рождения",         type: "date",     required: true },
-      { key: "residenceRegion",    label: "Регион проживания",     type: "select",   required: true, options: REGIONS },
-      { key: "reason",             label: "Обоснование",           type: "textarea", required: true }
+      { key: "subject",            label: "Кратко о запросе",    type: "text",     required: true },
+      { key: "action",             label: "Действие",            type: "select",   required: true, options: ["Получение", "Продление", "Восстановление", "Выход"] },
+      { key: "currentCitizenship", label: "Текущее гражданство", type: "text",     required: true },
+      { key: "birthDate",          label: "Дата рождения",       type: "date",     required: true },
+      { key: "residenceRegion",    label: "Регион проживания",   type: "select",   required: true, options: REGIONS },
+      { key: "reason",             label: "Обоснование",         type: "textarea", required: true }
     ]
   },
   marriage: {
@@ -140,12 +140,12 @@ const DEFAULT_CATEGORIES = {
   telemedicine: {
     name: "Телемедицинская консультация", order: 11,
     fields: [
-      { key: "subject",        label: "Тема консультации",   type: "text",     required: true },
-      { key: "specialty",      label: "Специальность врача", type: "select",   required: true, options: ["Терапевт", "Педиатр", "Психолог", "Кардиолог", "Дерматолог", "Иное"] },
-      { key: "symptoms",       label: "Жалобы / симптомы",   type: "textarea", required: true },
-      { key: "preferredDate",  label: "Желаемая дата",       type: "date",     required: false },
-      { key: "preferredTime",  label: "Желаемое время",      type: "select",   required: false, options: ["09:00–12:00", "12:00–15:00", "15:00–18:00", "18:00–21:00"] },
-      { key: "contactPhone",   label: "Телефон для связи",   type: "text",     required: false }
+      { key: "subject",       label: "Тема консультации",   type: "text",     required: true },
+      { key: "specialty",     label: "Специальность врача", type: "select",   required: true, options: ["Терапевт", "Педиатр", "Психолог", "Кардиолог", "Дерматолог", "Иное"] },
+      { key: "symptoms",      label: "Жалобы / симптомы",   type: "textarea", required: true },
+      { key: "preferredDate", label: "Желаемая дата",       type: "date",     required: false },
+      { key: "preferredTime", label: "Желаемое время",      type: "select",   required: false, options: ["09:00–12:00", "12:00–15:00", "15:00–18:00", "18:00–21:00"] },
+      { key: "contactPhone",  label: "Телефон для связи",   type: "text",     required: false }
     ]
   },
   party: {
@@ -173,28 +173,18 @@ const DEFAULT_CATEGORIES = {
 };
 
 const DEFAULT_FAQ = {
-  faq_1: { question: "Что такое ЖакидУслуги?",
-           answer: "Единый портал государственных услуг Республики Жакид.",
-           order: 1, createdAt: Date.now() },
-  faq_2: { question: "Сколько рассматривается заявление?",
-           answer: "Обычно 3–7 рабочих дней. Срок может быть продлён, если требуется дополнительная проверка.",
-           order: 2, createdAt: Date.now() },
-  faq_3: { question: "Что означают статусы?",
-           answer: "«Отправлено» — заявление попало в базу. «Получено» — сотрудник открыл и рассматривает. «Принято» — вынесено решение и дан ответ.",
-           order: 3, createdAt: Date.now() },
-  faq_4: { question: "Можно ли добавить документ самому?",
-           answer: "Да, в разделе «Мои документы» есть кнопка «Добавить документ». Официальные документы от госорганов помечены 🏛️, личные — 📝.",
-           order: 4, createdAt: Date.now() },
-  faq_5: { question: "Как найти моё заявление?",
-           answer: "У каждого заявления есть ID вида #A3F8B21C — он показан в карточке заявления. По нему можно искать в «Моих заявлениях» и в очереди сотрудника.",
-           order: 5, createdAt: Date.now() }
+  faq_1: { question: "Что такое ЖакидУслуги?", answer: "Единый портал государственных услуг Республики Жакид.", order: 1, createdAt: Date.now() },
+  faq_2: { question: "Сколько рассматривается заявление?", answer: "Обычно 3–7 рабочих дней.", order: 2, createdAt: Date.now() },
+  faq_3: { question: "Что означают статусы?", answer: "«Отправлено» — попало в базу. «Получено» — сотрудник открыл. «Принято» — вынесено решение.", order: 3, createdAt: Date.now() },
+  faq_4: { question: "Можно ли добавить документ самому?", answer: "Да, «Мои документы» → «Добавить документ».", order: 4, createdAt: Date.now() },
+  faq_5: { question: "Как найти моё заявление?", answer: "У каждого заявления есть ID вида #A3F8B21C — ищите по нему в «Моих заявлениях» и в очереди.", order: 5, createdAt: Date.now() }
 };
 
 /* ═══════════════ СОСТОЯНИЕ ═══════════════ */
 
-let me        = null;
-let profile   = {};
-let role      = "user";
+let me         = null;
+let profile    = {};
+let role       = "user";
 let categories = {};
 let staffCats  = {};
 const pendingCategory = { value: null };
@@ -213,16 +203,15 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g,
   c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 const fmt     = t => t ? new Date(t).toLocaleString("ru-RU") : "";
-const fmtDate = t => t ? new Date(t).toLocaleDateString("ru-RU") : "";
 const shortId = id => id ? "#" + id.slice(-8).toUpperCase() : "";
 
-const catName = id => categories[id]?.name || id;
-const catFields = id => (categories[id]?.fields || []).filter(f => f.key !== "subject");
+const catName = id => categories[id]?.name || DEFAULT_CATEGORIES[id]?.name || `[${id}]`;
+const catFields = id => (categories[id]?.fields || DEFAULT_CATEGORIES[id]?.fields || []).filter(f => f.key !== "subject");
 
 function fieldLabel(catId, key) {
   const f = (categories[catId]?.fields || []).find(x => x.key === key);
   if (f) return f.label;
-  for (const c of Object.values(categories)) {
+  for (const c of [...Object.values(categories), ...Object.values(DEFAULT_CATEGORIES)]) {
     const ff = (c?.fields || []).find(x => x.key === key);
     if (ff) return ff.label;
   }
@@ -230,7 +219,7 @@ function fieldLabel(catId, key) {
 }
 
 function sortedEntries(obj) {
-  return Object.entries(obj || {}).sort((a, b) => (a[1]?.order || 0) - (b[1]?.order || 0));
+  return Object.entries(obj || {}).sort((a, b) => (a[1]?.order || 999) - (b[1]?.order || 999));
 }
 
 const canDeleteApp = cat => role === "admin" || (role === "staff" && staffCats[cat] === true);
@@ -244,7 +233,7 @@ function switchTab(k) {
 /* ═══════════════ АРХИВ / УДАЛЕНИЕ ═══════════════ */
 
 function downloadApp(a, id) {
-  const cat  = categories[a.category];
+  const cat  = categories[a.category] || DEFAULT_CATEGORIES[a.category];
   const msgs = Object.entries(a.messages || {})
     .sort((x, y) => (x[1].createdAt || 0) - (y[1].createdAt || 0));
 
@@ -256,9 +245,7 @@ function downloadApp(a, id) {
   L.push(`Заявитель:     ${a.authorName || "—"} (${a.uid})`);
   if (a.assignee) L.push(`Ответственный: ${a.assignee.name || a.assignee.uid}`);
   L.push("", "— Поля заявления —");
-  Object.entries(a.fields || {}).forEach(([k, v]) => {
-    if (v) L.push(`${fieldLabel(a.category, k)}: ${v}`);
-  });
+  Object.entries(a.fields || {}).forEach(([k, v]) => { if (v) L.push(`${fieldLabel(a.category, k)}: ${v}`); });
   L.push("", "— Переписка —");
   if (!msgs.length) L.push("(нет сообщений)");
   else msgs.forEach(([, m]) => {
@@ -348,7 +335,7 @@ async function refreshUnreadBadge() {
       if (!badge) { badge = document.createElement("span"); badge.className = "badge-num"; tabBtn.appendChild(badge); }
       badge.textContent = count;
     } else if (badge) badge.remove();
-  } catch (e) { /* silent */ }
+  } catch (e) {}
 }
 
 /* ═══════════════ АВТОРИЗАЦИЯ ═══════════════ */
@@ -424,7 +411,7 @@ onAuthStateChanged(auth, async u => {
     const nr = snap.val() || "user";
     if (nr !== role) { role = nr; renderDash(); }
   }));
-  subG(onValue(ref(db, "categories"),             snap => { categories = snap.val() || {}; }));
+  subG(onValue(ref(db, "categories"),              snap => { categories = snap.val() || {}; }));
   subG(onValue(ref(db, `staffCategories/${u.uid}`), snap => { staffCats  = snap.val() || {}; }));
   subG(onValue(ref(db, `users/${u.uid}`),           snap => { profile    = snap.val() || {}; }));
 
@@ -503,16 +490,11 @@ function fieldHtml(f, value = "") {
 
   let control;
   switch (f.type) {
-    case "textarea":
-      control = `<textarea name="${esc(f.key)}" rows="3" ${req}>${esc(v)}</textarea>`; break;
-    case "select":
-      control = `<select name="${esc(f.key)}" ${req}>${opts}</select>`; break;
-    case "number":
-      control = `<input name="${esc(f.key)}" type="number" ${req} value="${esc(v)}">`; break;
-    case "date":
-      control = `<input name="${esc(f.key)}" type="date" ${req} value="${esc(v)}">`; break;
-    default:
-      control = `<input name="${esc(f.key)}" type="text" ${req} value="${esc(v)}">`;
+    case "textarea": control = `<textarea name="${esc(f.key)}" rows="3" ${req}>${esc(v)}</textarea>`; break;
+    case "select":   control = `<select name="${esc(f.key)}" ${req}>${opts}</select>`; break;
+    case "number":   control = `<input name="${esc(f.key)}" type="number" ${req} value="${esc(v)}">`; break;
+    case "date":     control = `<input name="${esc(f.key)}" type="date" ${req} value="${esc(v)}">`; break;
+    default:         control = `<input name="${esc(f.key)}" type="text" ${req} value="${esc(v)}">`;
   }
   return `<label><span>${esc(f.label)}${f.required ? " *" : ""}</span>${control}</label>`;
 }
@@ -526,15 +508,18 @@ function renderAppCard(node, a, id, opts = {}) {
   node.dataset.sig = sig;
 
   const oldDraft = node.querySelector('form.reply input[name="text"]')?.value || "";
-  const cat      = categories[a.category];
-  const title    = a.fields?.subject || cat?.name || a.category;
+  const cat      = categories[a.category] || DEFAULT_CATEGORIES[a.category];
+  const title    = a.fields?.subject || cat?.name || `[${a.category}]`;
   const msgs     = Object.entries(a.messages || {})
     .sort((x, y) => (x[1].createdAt || 0) - (y[1].createdAt || 0));
   const staffList = opts.staffList || [];
 
-  const fieldsHtml = Object.entries(a.fields || {})
-    .filter(([, v]) => v != null && v !== "")
-    .map(([k, v]) => `<div><b>${esc(fieldLabel(a.category, k))}:</b> ${esc(v)}</div>`).join("");
+  const fieldDefs = cat?.fields || [];
+  const fieldsHtml = fieldDefs.length > 0
+    ? fieldDefs.filter(f => a.fields?.[f.key] != null && a.fields[f.key] !== "")
+        .map(f => `<div><b>${esc(f.label)}:</b> ${esc(a.fields[f.key])}</div>`).join("")
+    : Object.entries(a.fields || {}).filter(([, v]) => v != null && v !== "")
+        .map(([k, v]) => `<div><b>${esc(k)}:</b> ${esc(v)}</div>`).join("");
 
   const canStatus = opts.staff && (role === "admin" || staffCats[a.category] === true);
   const canDel    = opts.staff && canDeleteApp(a.category);
@@ -573,17 +558,15 @@ function renderAppCard(node, a, id, opts = {}) {
         <select class="assignee-sel" data-id="${esc(id)}">
           <option value="">— не назначен —</option>
           ${staffList.map(s =>
-            `<option value="${esc(s.uid)}" ${a.assignee?.uid === s.uid ? "selected" : ""}>${esc(s.name)}</option>`
-          ).join("")}
+            `<option value="${esc(s.uid)}" ${a.assignee?.uid === s.uid ? "selected" : ""}>${esc(s.name)}</option>`).join("")}
         </select>
       </label>` : ""}
 
     ${canChangeCat ? `
       <label><span>Категория</span>
         <select class="category-sel" data-id="${esc(id)}">
-          ${sortedEntries(categories).map(([k, c]) =>
-            `<option value="${esc(k)}" ${a.category === k ? "selected" : ""}>${esc(c.name)}</option>`
-          ).join("")}
+          ${sortedEntries({ ...DEFAULT_CATEGORIES, ...categories }).map(([k, c]) =>
+            `<option value="${esc(k)}" ${a.category === k ? "selected" : ""}>${esc(c.name)}</option>`).join("")}
         </select>
       </label>` : ""}
 
@@ -608,15 +591,13 @@ function renderAppCard(node, a, id, opts = {}) {
 
     ${canDel ? `
       <div style="margin-top:8px;text-align:right;">
-        <button class="mini" data-del-id="${esc(id)}"
-                style="color:#b91c1c;border-color:#b91c1c;">
+        <button class="mini" data-del-id="${esc(id)}" style="color:#b91c1c;border-color:#b91c1c;">
           Удалить с сохранением в файл
         </button>
       </div>` : ""}`;
 
   if (opts.staff && a.status === "sent") observeAsReceived(id, node);
 
-  // подгрузка заметок
   if (opts.staff) {
     const listEl = node.querySelector(`.notes-list[data-id="${id}"]`);
     if (listEl) {
@@ -693,9 +674,8 @@ async function onNote(e) {
     await push(ref(db, `applicationNotes/${f.dataset.id}`),
       { by: me.uid, byName: me.displayName || me.email, text, createdAt: Date.now() });
     f.reset();
-    // перерисовать карточку
     const box = f.closest(".app-item");
-    if (box) box.dataset.sig = ""; // сброс, чтобы следующий update перерисовал
+    if (box) box.dataset.sig = "";
   } catch (err) { alert(err.message); }
 }
 
@@ -729,18 +709,13 @@ function mountHome(view) {
       <h2>🔴 В розыске</h2>
       <div id="wanted-teaser"><p class="muted">Загрузка…</p></div>
       <button id="wanted-more" class="mini" style="margin-top:8px;">Весь список →</button>
-    </section>
-  `;
+    </section>`;
 
   sub(onValue(ref(db, "news"), snap => {
     const items = Object.entries(snap.val() || {})
       .map(([id, n]) => ({ id, ...n }))
-      .sort((a, b) => {
-        if (a.pinned && !b.pinned) return -1;
-        if (!a.pinned && b.pinned) return 1;
-        return (b.createdAt || 0) - (a.createdAt || 0);
-      }).slice(0, 5);
-
+      .sort((a, b) => (a.pinned && !b.pinned ? -1 : !a.pinned && b.pinned ? 1 : (b.createdAt || 0) - (a.createdAt || 0)))
+      .slice(0, 5);
     const feed = view.querySelector("#news-feed");
     if (!items.length) { feed.innerHTML = `<p class="muted">Пока новостей нет.</p>`; return; }
     feed.innerHTML = items.map(n => `
@@ -752,21 +727,17 @@ function mountHome(view) {
   }));
 
   sub(onValue(ref(db, "wanted"), snap => {
-    const items = Object.entries(snap.val() || {})
-      .filter(([, w]) => w.status === "wanted")
-      .slice(0, 3);
+    const items = Object.entries(snap.val() || {}).filter(([, w]) => w.status === "wanted").slice(0, 3);
     const t = view.querySelector("#wanted-teaser");
     if (!items.length) { t.innerHTML = `<p class="muted">Список пуст.</p>`; return; }
-    t.innerHTML = items.map(([id, w]) => `
+    t.innerHTML = items.map(([, w]) => `
       <div class="wanted-card">
         <b>${esc(w.name)}</b> · <span class="wanted-status ${esc(w.status)}">${WANTED_STATUS[w.status]}</span>
         <div class="muted">С ${esc(w.since)}: ${esc(w.reason)}</div>
       </div>`).join("");
   }));
 
-  view.querySelector('[data-quick="__all__"]').onclick = () => {
-    pendingCategory.value = null; switchTab("apps");
-  };
+  view.querySelector('[data-quick="__all__"]').onclick = () => { pendingCategory.value = null; switchTab("apps"); };
   view.querySelectorAll("[data-quick]").forEach(btn => {
     if (btn.dataset.quick === "__all__") return;
     btn.onclick = () => { pendingCategory.value = btn.dataset.quick; switchTab("apps"); };
@@ -777,7 +748,8 @@ function mountHome(view) {
 /* ═══════════════ МОИ ЗАЯВЛЕНИЯ ═══════════════ */
 
 function mountApps(view) {
-  const catOptions = sortedEntries(categories)
+  const sourceCats = Object.keys(categories).length > 0 ? categories : DEFAULT_CATEGORIES;
+  const catOptions = sortedEntries(sourceCats)
     .map(([id, c]) => `<option value="${esc(id)}">${esc(c.name)}</option>`).join("");
 
   view.innerHTML = `
@@ -796,7 +768,7 @@ function mountApps(view) {
              </div>
            </form>
            <p class="err" id="e-new"></p>`
-        : `<p class="muted">Администратор ещё не создал категории.</p>`}
+        : `<p class="muted">Категории ещё не созданы.</p>`}
     </section>
 
     <h2>Мои заявления</h2>
@@ -812,20 +784,18 @@ function mountApps(view) {
     const form     = view.querySelector("#f-new");
 
     const paintForm = (values = {}) => {
-      const cat = categories[catSel.value];
+      const cat = sourceCats[catSel.value];
       fieldsEl.innerHTML = (cat?.fields || []).map(f => fieldHtml(f, values[f.key])).join("");
     };
     catSel.onchange = () => paintForm();
     paintForm();
 
-    // восстановление из pendingCategory (быстрые действия)
-    if (pendingCategory.value && categories[pendingCategory.value]) {
+    if (pendingCategory.value && sourceCats[pendingCategory.value]) {
       catSel.value = pendingCategory.value;
       paintForm();
       pendingCategory.value = null;
     }
 
-    // загрузка черновика
     const draftSlot = view.querySelector("#draft-slot");
     get(ref(db, `drafts/${me.uid}`)).then(snap => {
       const d = snap.val();
@@ -837,10 +807,7 @@ function mountApps(view) {
           <button class="mini" id="draft-drop" style="color:#b91c1c;">Удалить</button>
         </div>`;
       view.querySelector("#draft-resume").onclick = () => {
-        if (categories[d.category]) {
-          catSel.value = d.category;
-          paintForm(d.fields || {});
-        }
+        if (sourceCats[d.category]) { catSel.value = d.category; paintForm(d.fields || {}); }
         draftSlot.innerHTML = "";
       };
       view.querySelector("#draft-drop").onclick = async () => {
@@ -852,23 +819,21 @@ function mountApps(view) {
     view.querySelector("#save-draft").onclick = async () => {
       const fd = new FormData(form);
       const fields = {};
-      for (const f of (categories[catSel.value]?.fields || [])) fields[f.key] = fd.get(f.key) ?? "";
+      for (const f of (sourceCats[catSel.value]?.fields || [])) fields[f.key] = fd.get(f.key) ?? "";
       try {
         await set(ref(db, `drafts/${me.uid}`), { category: catSel.value, fields, savedAt: Date.now() });
-        view.querySelector("#e-new").textContent = "";
         view.querySelector("#e-new").className = "ok";
         view.querySelector("#e-new").textContent = "✓ Черновик сохранён";
         setTimeout(() => { view.querySelector("#e-new").textContent = ""; view.querySelector("#e-new").className = "err"; }, 2000);
       } catch (err) { view.querySelector("#e-new").textContent = "Ошибка: " + err.message; }
     };
 
-    // ── ИСПРАВЛЕННЫЙ ОБРАБОТЧИК ОТПРАВКИ ──
     form.onsubmit = async e => {
       e.preventDefault();
       const cat = catSel.value;
       const fd  = new FormData(e.target);
       const fields = {};
-      for (const f of (categories[cat]?.fields || [])) fields[f.key] = fd.get(f.key) ?? "";
+      for (const f of (sourceCats[cat]?.fields || [])) fields[f.key] = fd.get(f.key) ?? "";
 
       if (!fields.subject) {
         view.querySelector("#e-new").className = "err";
@@ -876,33 +841,21 @@ function mountApps(view) {
         return;
       }
       if (Object.keys(fields).length === 0) {
-        view.querySelector("#e-new").className = "err";
-        view.querySelector("#e-new").textContent =
-          "Ошибка: у категории нет полей. Обновите страницу (Ctrl+Shift+R) или нажмите в админке «Установить стандартные категории».";
+        view.querySelector("#e-new").textContent = "Ошибка: у категории нет полей. Обновите страницу (Ctrl+Shift+R).";
         return;
       }
 
       const id = push(ref(db, "applications")).key;
       try {
-        // Шаг 1: создаём заявление — правило создания уже разрешает эту запись.
         await set(ref(db, `applications/${id}`), {
-          uid: me.uid,
-          authorName: me.displayName || me.email,
-          category: cat,
-          status: "sent",
-          createdAt: Date.now(),
-          fields
+          uid: me.uid, authorName: me.displayName || me.email,
+          category: cat, status: "sent", createdAt: Date.now(), fields
         });
-
-        // Шаг 2: индексы. staffQueue-правило теперь видит applications/$id/uid === auth.uid.
         await update(ref(db), {
           [`userApps/${me.uid}/${id}`]: true,
           [`staffQueue/${cat}/${id}`]:  true
         });
-
-        // Шаг 3: чистим черновик (если был)
         await remove(ref(db, `drafts/${me.uid}`)).catch(() => {});
-
         e.target.reset();
         paintForm();
         view.querySelector("#draft-slot").innerHTML = "";
@@ -915,7 +868,6 @@ function mountApps(view) {
     };
   }
 
-  // ── баннер непрочитанных ответов ──
   (async () => {
     if (role !== "user") return;
     try {
@@ -936,7 +888,6 @@ function mountApps(view) {
     } catch {}
   })();
 
-  // ── список заявлений + поиск ──
   const listEl  = view.querySelector("#apps");
   const emptyEl = view.querySelector("#empty");
   const search  = view.querySelector("#apps-search");
@@ -953,7 +904,6 @@ function mountApps(view) {
   sub(onValue(ref(db, `userApps/${me.uid}`), snap => {
     const ids = Object.keys(snap.val() || {});
     emptyEl.hidden = ids.length > 0;
-
     for (const [id, it] of items) {
       if (!ids.includes(id)) { it.unsub(); it.node.remove(); items.delete(id); }
     }
@@ -966,9 +916,7 @@ function mountApps(view) {
         const a = s.val();
         if (a) {
           node.dataset.search = (
-            shortId(id) + " " + id + " " +
-            (a.fields?.subject || "") + " " +
-            Object.values(a.fields || {}).join(" ")
+            shortId(id) + " " + id + " " + (a.fields?.subject || "") + " " + Object.values(a.fields || {}).join(" ")
           ).toLowerCase();
         }
         renderAppCard(node, a, id);
@@ -1041,10 +989,8 @@ function mountDocs(view) {
   });
 
   sub(onValue(ref(db, `userDocs/${me.uid}`), snap => {
-    const entries = Object.entries(snap.val() || {})
-      .sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
+    const entries = Object.entries(snap.val() || {}).sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
     emptyEl.hidden = entries.length > 0;
-
     listEl.innerHTML = entries.map(([id, d]) => {
       const self = d.addedBy === "self";
       return `
@@ -1089,12 +1035,9 @@ function mountFaq(view) {
 function mountWanted(view) {
   view.innerHTML = `
     <h2>Реестр розыска</h2>
-    <p class="muted">Публичный список лиц, находящихся в розыске. Если вы обладаете информацией — сообщите в МВД через «Мои заявления» → «Жалоба на решение органа» или напрямую сотруднику.</p>
-    <div class="search-row">
-      <input id="wanted-search" placeholder="🔍 Поиск по имени или описанию…">
-    </div>
-    <div id="wanted-list"></div>
-  `;
+    <p class="muted">Публичный список лиц, находящихся в розыске. Если вы обладаете информацией — сообщите в МВД.</p>
+    <div class="search-row"><input id="wanted-search" placeholder="🔍 Поиск по имени или описанию…"></div>
+    <div id="wanted-list"></div>`;
 
   const search = view.querySelector("#wanted-search");
   const list   = view.querySelector("#wanted-list");
@@ -1103,8 +1046,7 @@ function mountWanted(view) {
   const paint = () => {
     const q = (search.value || "").toLowerCase().trim();
     const items = allItems.filter(([, w]) =>
-      !q || w.name.toLowerCase().includes(q) || (w.reason || "").toLowerCase().includes(q) ||
-      (w.description || "").toLowerCase().includes(q)
+      !q || w.name.toLowerCase().includes(q) || (w.reason || "").toLowerCase().includes(q) || (w.description || "").toLowerCase().includes(q)
     );
     list.innerHTML = items.length
       ? items.map(([, w]) => `
@@ -1122,11 +1064,10 @@ function mountWanted(view) {
   };
 
   sub(onValue(ref(db, "wanted"), snap => {
-    allItems = Object.entries(snap.val() || {})
-      .sort((a, b) => {
-        const order = { wanted: 0, detained: 1, cleared: 2 };
-        return (order[a[1].status] || 0) - (order[b[1].status] || 0);
-      });
+    allItems = Object.entries(snap.val() || {}).sort((a, b) => {
+      const order = { wanted: 0, detained: 1, cleared: 2 };
+      return (order[a[1].status] || 0) - (order[b[1].status] || 0);
+    });
     paint();
   }));
   search.oninput = paint;
@@ -1138,10 +1079,7 @@ function mountProfile(view) {
   const u = profile;
   view.innerHTML = `
     <h2>Профиль</h2>
-    <div style="margin-bottom:12px;">
-      ${renderServiceBadge()}
-      <span class="badge">${ROLE_RU[role]}</span>
-    </div>
+    <div style="margin-bottom:12px;">${renderServiceBadge()} <span class="badge">${ROLE_RU[role]}</span></div>
 
     <form id="f-profile" class="card">
       <label><span>Имя / ФИО</span><input name="displayName" value="${esc(u.displayName || "")}" required></label>
@@ -1157,7 +1095,7 @@ function mountProfile(view) {
       <label><span>О себе</span><textarea name="bio" rows="3">${esc(u.bio || "")}</textarea></label>
 
       <h3 style="margin-top:20px;">🛡️ Служба</h3>
-      <p class="muted" style="font-size:13px;">Заполните, если вы военнослужащий, сотрудник МВД, экстренных служб или судебной системы. Информация отображается в вашем профиле и в шапке сервиса.</p>
+      <p class="muted" style="font-size:13px;">Заполните, если вы военнослужащий, сотрудник МВД, экстренных служб или судебной системы.</p>
 
       <label><span>Тип службы</span>
         <select name="serviceType">
@@ -1184,7 +1122,7 @@ function mountProfile(view) {
     e.preventDefault();
     const fd = new FormData(e.target);
     const data = {
-      displayName: fd.get("displayName").trim(),
+      displayName:  fd.get("displayName").trim(),
       region:       fd.get("region") || null,
       birthDate:    fd.get("birthDate") || null,
       contactPhone: fd.get("contactPhone").trim() || null,
@@ -1199,7 +1137,6 @@ function mountProfile(view) {
       profile = { ...profile, ...data };
       view.querySelector("#prof-ok").textContent = "✓ Сохранено";
       view.querySelector("#prof-err").textContent = "";
-      // обновить бейдж в шапке
       const old = root.querySelector(".service-badge");
       const header = root.querySelector("header");
       if (old) old.remove();
@@ -1215,7 +1152,7 @@ function mountProfile(view) {
   };
 }
 
-/* ═══════════════ ОЧЕРЕДЬ ═══════════════ */
+/* ═══════════════ ОЧЕРЕДЬ (ПЕРЕПИСАНО) ═══════════════ */
 
 async function mountQueue(view) {
   view.innerHTML = `
@@ -1229,33 +1166,76 @@ async function mountQueue(view) {
       <button data-f="received">Получено</button>
       <button data-f="accepted">Принято</button>
     </div>
+    <p id="q-diag" class="muted" style="font-size:12px;margin:8px 0;"></p>
     <div id="q"></div>`;
 
   const q = view.querySelector("#q");
+  const diag = view.querySelector("#q-diag");
   let filter = "all";
 
-  // загружаем список сотрудников для dropdown «Ответственный»
-  const rolesSnap = await get(ref(db, "roles"));
-  const staffRoles = rolesSnap.val() || {};
-  const staffList = await Promise.all(
-    Object.entries(staffRoles)
-      .filter(([, r]) => r === "staff" || r === "admin")
-      .map(async ([uid]) => {
-        const u = (await get(ref(db, `users/${uid}`))).val() || {};
-        return { uid, name: u.displayName || u.email || uid.slice(0, 6) };
-      })
-  );
+  // 1. Загружаем актуальные categories из БД
+  try {
+    const catsSnap = await get(ref(db, "categories"));
+    const dbCats = catsSnap.val() || {};
+    if (Object.keys(dbCats).length > 0) categories = dbCats;
+  } catch (e) { console.warn("categories load failed:", e); }
 
-  let cats = Object.keys(categories);
-  if (role === "staff") {
+  const activeCats = Object.keys(categories).length > 0 ? categories : DEFAULT_CATEGORIES;
+
+  // 2. Определяем, какие категории показывать
+  let showCats;
+  if (role === "admin") {
+    showCats = Object.keys(activeCats);
+  } else {
     const s = await get(ref(db, `staffCategories/${me.uid}`));
-    cats = Object.keys(s.val() || {});
-    cats = cats.filter(c => c !== "documents");
+    showCats = Object.keys(s.val() || {}).filter(c => c !== "documents");
   }
-  if (!cats.length) {
-    q.innerHTML = `<p class="muted">Вам не назначено ни одной категории.</p>`;
+
+  // 3. Добавляем категории из staffQueue (даже если их нет в categories)
+  let queueCats = [];
+  try {
+    const queueSnap = await get(ref(db, "staffQueue"));
+    const queueData = queueSnap.val() || {};
+    queueCats = Object.keys(queueData).filter(c => c !== "documents");
+    if (role === "admin") {
+      for (const c of queueCats) if (!showCats.includes(c)) showCats.push(c);
+    } else {
+      // сотруднику тоже показываем то, что реально в его staffQueue (но не чужие категории)
+      // find which queueCats intersect with staffCategories
+      const staffCatsSet = new Set(Object.keys((await get(ref(db, `staffCategories/${me.uid}`))).val() || {}));
+      for (const c of queueCats) {
+        if (staffCatsSet.has(c) && !showCats.includes(c)) showCats.push(c);
+      }
+    }
+  } catch (e) { console.warn("staffQueue read failed:", e); }
+
+  diag.innerHTML =
+    `В categories: [${Object.keys(activeCats).join(", ") || "—"}] · ` +
+    `в staffQueue: [${queueCats.join(", ") || "—"}] · ` +
+    `показываю: [${showCats.join(", ") || "—"}]`;
+
+  if (showCats.length === 0) {
+    q.innerHTML = `<p class="muted" style="padding:16px 0;">
+      Очередь пуста — нет ни категорий, ни заявлений.<br>
+      ${role === "admin" ? "Зайдите в «Администрирование» → «Установить стандартные категории»." : "Обратитесь к администратору за назначением категорий."}
+    </p>`;
     return;
   }
+
+  // 4. Список сотрудников для dropdown «Ответственный»
+  let staffList = [];
+  try {
+    const rolesSnap = await get(ref(db, "roles"));
+    const staffRoles = rolesSnap.val() || {};
+    staffList = await Promise.all(
+      Object.entries(staffRoles)
+        .filter(([, r]) => r === "staff" || r === "admin")
+        .map(async ([uid]) => {
+          const u = (await get(ref(db, `users/${uid}`))).val() || {};
+          return { uid, name: u.displayName || u.email || uid.slice(0, 6) };
+        })
+    );
+  } catch (e) { console.warn("staffList load failed:", e); }
 
   const items = new Map();
   const search = view.querySelector("#queue-search");
@@ -1278,18 +1258,32 @@ async function mountQueue(view) {
   };
   search.oninput = applyFilters;
 
-  for (const cat of cats) {
+  // 5. Сортируем по order
+  showCats.sort((a, b) => {
+    const oa = activeCats[a]?.order ?? DEFAULT_CATEGORIES[a]?.order ?? 999;
+    const ob = activeCats[b]?.order ?? DEFAULT_CATEGORIES[b]?.order ?? 999;
+    return oa - ob;
+  });
+
+  // 6. Рендерим блоки
+  for (const cat of showCats) {
     const block = document.createElement("section");
     block.className = "card";
-    block.innerHTML = `<h3>${esc(catName(cat))}</h3><div class="list"></div>`;
+    const name = activeCats[cat]?.name || DEFAULT_CATEGORIES[cat]?.name || `[${cat}]`;
+    block.innerHTML = `
+      <h3>${esc(name)}</h3>
+      <div class="list"></div>
+      <p class="muted empty-msg" style="font-size:13px;margin:6px 0;">Заявлений нет.</p>`;
     q.append(block);
     const list = block.querySelector(".list");
+    const emptyMsg = block.querySelector(".empty-msg");
 
     sub(onValue(ref(db, `staffQueue/${cat}`), snap => {
       const ids = Object.keys(snap.val() || {});
+      emptyMsg.hidden = ids.length > 0;
 
       for (const [id, it] of items) {
-        if (!ids.includes(id)) {
+        if (it.category === cat && !ids.includes(id)) {
           it.unsub(); it.node.remove(); items.delete(id);
           const obs = receivedObservers.get(id);
           if (obs) { obs.disconnect(); receivedObservers.delete(id); }
@@ -1313,7 +1307,7 @@ async function mountQueue(view) {
           renderAppCard(node, a, id, { staff: true, staffList });
           applyFilters();
         });
-        items.set(id, { node, unsub });
+        items.set(id, { node, unsub, category: cat });
       }
       applyFilters();
     }));
@@ -1365,8 +1359,7 @@ function mountIssueDoc(view) {
     const sel = view.querySelector("#doc-uid");
     const cur = sel.value;
     sel.innerHTML = Object.entries(users).map(([uid, u]) =>
-      `<option value="${esc(uid)}">${esc(u.displayName || "—")} — ${esc(u.email || "")}</option>`
-    ).join("");
+      `<option value="${esc(uid)}">${esc(u.displayName || "—")} — ${esc(u.email || "")}</option>`).join("");
     if (cur) sel.value = cur;
   }));
 
@@ -1397,9 +1390,16 @@ function mountAdmin(view) {
 
     <section class="card">
       <h3>Стандартные категории</h3>
-      <p class="muted">Заполнит/перезапишет категории ЖакидУслуг. Существующие заявления не пострадают.</p>
+      <p class="muted">Заполнит/перезапишет категории. Существующие заявления не пострадают.</p>
       <button id="seed-cats" class="primary mini">Установить стандартные категории</button>
       <p class="ok" id="seed-msg"></p>
+    </section>
+
+    <section class="card">
+      <h3>🔧 Обслуживание</h3>
+      <p class="muted">Если заявления «теряются» в очереди — нажмите «Пересобрать индексы». Скрипт пройдёт по всем applications и восстановит userApps и staffQueue, удалит висячие ссылки.</p>
+      <button id="rebuild-indexes" class="mini">Пересобрать индексы</button>
+      <p class="ok" id="rebuild-msg"></p>
     </section>
 
     <section class="card">
@@ -1450,18 +1450,67 @@ function mountAdmin(view) {
       <h3>Пользователи и роли</h3>
       <div id="user-list" class="muted">Загрузка…</div>
       <p class="muted" style="font-size:13px;margin-top:8px;">
-        Роль <b>staff</b> + категории (напр. <code>court, labor, documents</code>) — сотрудник обрабатывает заявления этих категорий. <code>documents</code> — право выдавать документы.
+        Роль <b>staff</b> + категории (например <code>court, labor, documents</code>).
+        <code>documents</code> — право выдавать документы.
       </p>
-    </section>
-  `;
+    </section>`;
 
-  // ── seed категорий ──
+  // ── seed ──
   view.querySelector("#seed-cats").onclick = async () => {
     if (!confirm("Перезаписать все категории стандартным набором?")) return;
     try {
       await set(ref(db, "categories"), DEFAULT_CATEGORIES);
       view.querySelector("#seed-msg").textContent = "✓ Категории установлены.";
     } catch (e) { view.querySelector("#seed-msg").textContent = "Ошибка: " + e.message; }
+  };
+
+  // ── пересобрать индексы ──
+  view.querySelector("#rebuild-indexes").onclick = async () => {
+    if (!confirm("Пересобрать индексы userApps и staffQueue по всем заявлениям?")) return;
+    const msg = view.querySelector("#rebuild-msg");
+    msg.textContent = "Работаю…";
+    try {
+      const [appsS, uaS, qS] = await Promise.all([
+        get(ref(db, "applications")),
+        get(ref(db, "userApps")),
+        get(ref(db, "staffQueue"))
+      ]);
+      const apps  = appsS.val() || {};
+      const ua    = uaS.val()  || {};
+      const qdata = qS.val()   || {};
+      const patch = {};
+
+      let added = 0, removed = 0;
+
+      for (const [id, a] of Object.entries(apps)) {
+        if (!a.uid || !a.category) continue;
+        if (!ua[a.uid]?.[id]) { patch[`userApps/${a.uid}/${id}`] = true; added++; }
+        if (!qdata[a.category]?.[id]) { patch[`staffQueue/${a.category}/${id}`] = true; added++; }
+      }
+
+      for (const [uid, ids] of Object.entries(ua)) {
+        for (const id of Object.keys(ids || {})) {
+          if (!apps[id]) { patch[`userApps/${uid}/${id}`] = null; removed++; }
+        }
+      }
+      for (const [cat, ids] of Object.entries(qdata)) {
+        for (const id of Object.keys(ids || {})) {
+          if (!apps[id]) { patch[`staffQueue/${cat}/${id}`] = null; removed++; }
+          else if (apps[id].category !== cat) {
+            patch[`staffQueue/${cat}/${id}`] = null;
+            patch[`staffQueue/${apps[id].category}/${id}`] = true;
+            removed++; added++;
+          }
+        }
+      }
+
+      if (Object.keys(patch).length === 0) {
+        msg.textContent = "✓ Всё уже корректно — восстанавливать нечего.";
+      } else {
+        await update(ref(db), patch);
+        msg.textContent = `✓ Готово. Восстановлено: ${added}, удалено/перемещено: ${removed}.`;
+      }
+    } catch (e) { msg.textContent = "Ошибка: " + e.message; }
   };
 
   // ── FAQ ──
@@ -1471,30 +1520,22 @@ function mountAdmin(view) {
     try {
       const snap  = await get(ref(db, "faq"));
       const order = Object.keys(snap.val() || {}).length + 1;
-      await push(ref(db, "faq"), {
-        question: fd.get("question").trim(), answer: fd.get("answer").trim(),
-        order, createdAt: Date.now()
-      });
+      await push(ref(db, "faq"), { question: fd.get("question").trim(), answer: fd.get("answer").trim(), order, createdAt: Date.now() });
       e.target.reset();
     } catch (err) { alert(err.message); }
   };
-
   view.querySelector("#seed-faq").onclick = async () => {
     if (!confirm("Добавить стандартные FAQ?")) return;
     try { await update(ref(db, "faq"), DEFAULT_FAQ); }
     catch (err) { alert(err.message); }
   };
-
   sub(onValue(ref(db, "faq"), snap => {
     const ul = view.querySelector("#faq-list");
     const entries = sortedEntries(snap.val());
     ul.innerHTML = entries.length
-      ? entries.map(([id, f]) => `
-          <li><b>${esc(f.question)}</b> — ${esc(f.answer)}
-            <button class="mini" data-del-faq="${esc(id)}">удалить</button></li>`).join("")
+      ? entries.map(([id, f]) => `<li><b>${esc(f.question)}</b> — ${esc(f.answer)} <button class="mini" data-del-faq="${esc(id)}">удалить</button></li>`).join("")
       : `<li class="muted">пока нет</li>`;
   }));
-
   view.querySelector("#faq-list").onclick = async e => {
     const b = e.target.closest("[data-del-faq]");
     if (!b) return;
@@ -1509,33 +1550,24 @@ function mountAdmin(view) {
     const fd = new FormData(e.target);
     try {
       await push(ref(db, "news"), {
-        title: fd.get("title").trim(),
-        body: fd.get("body").trim(),
+        title: fd.get("title").trim(), body: fd.get("body").trim(),
         pinned: fd.get("pinned") === "on",
-        author: me.displayName || me.email,
-        createdAt: Date.now()
+        author: me.displayName || me.email, createdAt: Date.now()
       });
       e.target.reset();
     } catch (err) { alert(err.message); }
   };
-
   sub(onValue(ref(db, "news"), snap => {
     const ul = view.querySelector("#news-list");
-    const items = Object.entries(snap.val() || {})
-      .sort((a, b) => {
-        if (a[1].pinned && !b[1].pinned) return -1;
-        if (!a[1].pinned && b[1].pinned) return 1;
-        return (b[1].createdAt || 0) - (a[1].createdAt || 0);
-      });
+    const items = Object.entries(snap.val() || {}).sort((a, b) => {
+      if (a[1].pinned && !b[1].pinned) return -1;
+      if (!a[1].pinned && b[1].pinned) return 1;
+      return (b[1].createdAt || 0) - (a[1].createdAt || 0);
+    });
     ul.innerHTML = items.length
-      ? items.map(([id, n]) => `
-          <li><b>${n.pinned ? "📌 " : ""}${esc(n.title)}</b>
-            <div class="muted" style="font-size:13px;">${fmt(n.createdAt)}</div>
-            <button class="mini" data-del-news="${esc(id)}">удалить</button>
-          </li>`).join("")
+      ? items.map(([id, n]) => `<li><b>${n.pinned ? "📌 " : ""}${esc(n.title)}</b><div class="muted" style="font-size:13px;">${fmt(n.createdAt)}</div><button class="mini" data-del-news="${esc(id)}">удалить</button></li>`).join("")
       : `<li class="muted">пока нет</li>`;
   }));
-
   view.querySelector("#news-list").onclick = async e => {
     const b = e.target.closest("[data-del-news]");
     if (!b) return;
@@ -1550,30 +1582,22 @@ function mountAdmin(view) {
     const fd = new FormData(e.target);
     try {
       await push(ref(db, "wanted"), {
-        name: fd.get("name").trim(),
-        reason: fd.get("reason").trim(),
-        since: fd.get("since"),
-        lastSeen: fd.get("lastSeen").trim() || null,
+        name: fd.get("name").trim(), reason: fd.get("reason").trim(),
+        since: fd.get("since"), lastSeen: fd.get("lastSeen").trim() || null,
         description: fd.get("description").trim() || null,
         reward: fd.get("reward").trim() || null,
-        status: fd.get("status"),
-        createdAt: Date.now(),
-        createdBy: me.uid
+        status: fd.get("status"), createdAt: Date.now(), createdBy: me.uid
       });
       e.target.reset();
     } catch (err) { alert(err.message); }
   };
-
   sub(onValue(ref(db, "wanted"), snap => {
     const ul = view.querySelector("#wanted-list-admin");
     const items = Object.entries(snap.val() || {});
     ul.innerHTML = items.length
-      ? items.map(([id, w]) => `
-          <li><b>${esc(w.name)}</b> · ${WANTED_STATUS[w.status] || esc(w.status)}
-            <button class="mini" data-del-wanted="${esc(id)}">удалить</button></li>`).join("")
+      ? items.map(([id, w]) => `<li><b>${esc(w.name)}</b> · ${WANTED_STATUS[w.status] || esc(w.status)} <button class="mini" data-del-wanted="${esc(id)}">удалить</button></li>`).join("")
       : `<li class="muted">пока нет</li>`;
   }));
-
   view.querySelector("#wanted-list-admin").onclick = async e => {
     const b = e.target.closest("[data-del-wanted]");
     if (!b) return;
@@ -1584,29 +1608,24 @@ function mountAdmin(view) {
 
   // ── пользователи / роли ──
   let users = {}, roles = {}, scats = {};
-
   const paintUsers = () => {
     const box = view.querySelector("#user-list");
     const entries = Object.entries(users);
     if (!entries.length) { box.textContent = "Пока никто не зарегистрировался."; return; }
     box.innerHTML = entries.map(([uid, u]) => {
-      const r    = roles[uid] || "user";
+      const r = roles[uid] || "user";
       const cats = Object.keys(scats[uid] || {}).join(", ");
       const self = uid === me.uid;
       return `<div class="user-row">
         <div><b>${esc(u.displayName || "—")}</b><br><small>${esc(u.email || "")}</small></div>
-        ${self
-          ? `<div class="muted">(вы — ${ROLE_RU[r]})</div>`
+        ${self ? `<div class="muted">(вы — ${ROLE_RU[r]})</div>`
           : `<select class="role-sel" data-uid="${esc(uid)}">
-               ${["user","staff","admin"].map(x =>
-                 `<option value="${x}" ${r === x ? "selected" : ""}>${ROLE_RU[x]}</option>`).join("")}
+               ${["user","staff","admin"].map(x => `<option value="${x}" ${r === x ? "selected" : ""}>${ROLE_RU[x]}</option>`).join("")}
              </select>`}
-        <input class="cat-inp" data-uid="${esc(uid)}"
-               placeholder="категории через запятую" value="${esc(cats)}">
+        <input class="cat-inp" data-uid="${esc(uid)}" placeholder="категории через запятую" value="${esc(cats)}">
       </div>`;
     }).join("");
   };
-
   sub(onValue(ref(db, "users"),           s => { users = s.val() || {}; paintUsers(); }));
   sub(onValue(ref(db, "roles"),           s => { roles = s.val() || {}; paintUsers(); }));
   sub(onValue(ref(db, "staffCategories"), s => { scats = s.val() || {}; paintUsers(); }));
