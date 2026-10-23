@@ -13,28 +13,23 @@ const auth = getAuth(app);
 const db   = getDatabase(app);
 const root = document.getElementById("app");
 
-/* ==================== КОНСТАНТЫ ==================== */
+/* ═══════════════ КОНСТАНТЫ ═══════════════ */
 
-const STATUS  = { sent: "Отправлено", received: "Получено", accepted: "Принято" };
-const ROLE_RU = { user: "пользователь", staff: "сотрудник", admin: "админ" };
-
-const DOC_STATUS = {
-  active:  "Действителен",
-  pending: "Ожидает выдачи",
-  revoked: "Аннулирован"
+const STATUS       = { sent: "Отправлено", received: "Получено", accepted: "Принято" };
+const ROLE_RU      = { user: "пользователь", staff: "сотрудник", admin: "админ" };
+const DOC_STATUS   = { active: "Действителен", pending: "Ожидает выдачи", revoked: "Аннулирован" };
+const WANTED_STATUS = { wanted: "В розыске", detained: "Задержан", cleared: "Розыск прекращён" };
+const DOC_TYPES    = {
+  passport: "Паспорт", inn: "ИНН", registration: "Прописка",
+  medical: "Медицинская карта", certificate: "Свидетельство",
+  permit: "Разрешение", license: "Удостоверение", other: "Иной документ"
 };
-
-const DOC_TYPES = {
-  passport:     "Паспорт",
-  inn:          "ИНН",
-  registration: "Прописка",
-  medical:      "Медицинская карта",
-  certificate:  "Свидетельство",
-  permit:       "Разрешение",
-  license:      "Удостоверение",
-  other:        "Иной документ"
+const SERVICE_TYPES = {
+  military:  "Военнослужащий",
+  police:    "Сотрудник МВД",
+  emergency: "Экстренная служба",
+  judicial:  "Судебная система"
 };
-
 const REGIONS = ["т/о Мекас", "т/о Эльт", "ОЭЗ Кибер-Сити", "Республика Балугу"];
 
 const DEFAULT_CATEGORIES = {
@@ -45,7 +40,7 @@ const DEFAULT_CATEGORIES = {
       { key: "respondent", label: "Ответчик (ФИО / название)", type: "text",     required: true },
       { key: "claimBody",  label: "Суть иска",                 type: "textarea", required: true },
       { key: "demands",    label: "Требования",                type: "textarea", required: true },
-      { key: "evidence",   label: "Доказательства (описание)", type: "textarea", required: false }
+      { key: "evidence",   label: "Доказательства",            type: "textarea", required: false }
     ]
   },
   labor: {
@@ -71,8 +66,7 @@ const DEFAULT_CATEGORIES = {
     name: "Грант (культура / бизнес)", order: 4,
     fields: [
       { key: "subject",     label: "Название проекта",        type: "text",     required: true },
-      { key: "grantType",   label: "Тип гранта",              type: "select",   required: true,
-        options: ["Культурный проект", "Бизнес проект"] },
+      { key: "grantType",   label: "Тип гранта",              type: "select",   required: true, options: ["Культурный проект", "Бизнес проект"] },
       { key: "description", label: "Описание проекта",        type: "textarea", required: true },
       { key: "amount",      label: "Запрашиваемая сумма (₮)", type: "number",   required: true },
       { key: "budget",      label: "План расходов",           type: "textarea", required: true }
@@ -82,11 +76,9 @@ const DEFAULT_CATEGORIES = {
     name: "Проверка трудовых условий (МинТруд / МВД)", order: 5,
     fields: [
       { key: "subject",       label: "Кратко о проблеме",  type: "text",     required: true },
-      { key: "authority",     label: "Куда направить",     type: "select",   required: true,
-        options: ["Министерство труда", "МВД"] },
+      { key: "authority",     label: "Куда направить",     type: "select",   required: true, options: ["Министерство труда", "МВД"] },
       { key: "employer",      label: "Работодатель",       type: "text",     required: true },
-      { key: "violationType", label: "Что проверить",      type: "select",   required: true,
-        options: ["Нарушение трудового договора", "Техника безопасности", "Оба"] },
+      { key: "violationType", label: "Что проверить",      type: "select",   required: true, options: ["Нарушение трудового договора", "Техника безопасности", "Оба"] },
       { key: "description",   label: "Описание нарушений", type: "textarea", required: true }
     ]
   },
@@ -94,59 +86,148 @@ const DEFAULT_CATEGORIES = {
     name: "Помощь военнослужащим и семьям", order: 6,
     fields: [
       { key: "subject",        label: "Кратко о ситуации",   type: "text",     required: true },
-      { key: "status",         label: "Ваш статус",          type: "select",   required: true,
-        options: ["Военнослужащий", "Член семьи военнослужащего"] },
+      { key: "status",         label: "Ваш статус",          type: "select",   required: true, options: ["Военнослужащий", "Член семьи военнослужащего"] },
       { key: "servicemanName", label: "ФИО военнослужащего", type: "text",     required: true },
       { key: "unit",           label: "Подразделение",       type: "text",     required: false },
-      { key: "aidType",        label: "Вид помощи",          type: "select",   required: true,
-        options: ["Материальная", "Медицинская", "Юридическая", "Иная"] },
+      { key: "aidType",        label: "Вид помощи",          type: "select",   required: true, options: ["Материальная", "Медицинская", "Юридическая", "Иная"] },
       { key: "situation",      label: "Описание ситуации",   type: "textarea", required: true }
+    ]
+  },
+  citizenship: {
+    name: "Гражданство (получение / продление)", order: 7,
+    fields: [
+      { key: "subject",            label: "Кратко о запросе",      type: "text",     required: true },
+      { key: "action",             label: "Действие",              type: "select",   required: true, options: ["Получение", "Продление", "Восстановление", "Выход"] },
+      { key: "currentCitizenship", label: "Текущее гражданство",   type: "text",     required: true },
+      { key: "birthDate",          label: "Дата рождения",         type: "date",     required: true },
+      { key: "residenceRegion",    label: "Регион проживания",     type: "select",   required: true, options: REGIONS },
+      { key: "reason",             label: "Обоснование",           type: "textarea", required: true }
+    ]
+  },
+  marriage: {
+    name: "Регистрация / расторжение брака", order: 8,
+    fields: [
+      { key: "subject",       label: "Тема обращения",  type: "text",     required: true },
+      { key: "action",        label: "Действие",        type: "select",   required: true, options: ["Регистрация брака", "Расторжение брака"] },
+      { key: "partnerName",   label: "ФИО партнёра",    type: "text",     required: true },
+      { key: "partnerEmail",  label: "Email партнёра",  type: "text",     required: false },
+      { key: "preferredDate", label: "Желаемая дата",   type: "date",     required: false },
+      { key: "notes",         label: "Дополнительно",   type: "textarea", required: false }
+    ]
+  },
+  businessLicense: {
+    name: "Лицензия на бизнес", order: 9,
+    fields: [
+      { key: "subject",     label: "Название бизнеса",        type: "text",     required: true },
+      { key: "legalForm",   label: "Форма",                   type: "select",   required: true, options: ["ИП", "ООО", "НКО", "Самозанятый"] },
+      { key: "sphere",      label: "Сфера деятельности",      type: "text",     required: true },
+      { key: "address",     label: "Адрес регистрации",       type: "text",     required: true },
+      { key: "capital",     label: "Уставный капитал (₮)",    type: "number",   required: false },
+      { key: "description", label: "Описание",                type: "textarea", required: true }
+    ]
+  },
+  complaint: {
+    name: "Жалоба на решение органа", order: 10,
+    fields: [
+      { key: "subject",        label: "Кратко о жалобе",  type: "text",     required: true },
+      { key: "authority",      label: "Орган",            type: "text",     required: true },
+      { key: "decisionNumber", label: "Номер решения",    type: "text",     required: false },
+      { key: "decisionDate",   label: "Дата решения",     type: "date",     required: false },
+      { key: "essence",        label: "Суть жалобы",      type: "textarea", required: true },
+      { key: "demands",        label: "Что просите",      type: "textarea", required: true }
+    ]
+  },
+  telemedicine: {
+    name: "Телемедицинская консультация", order: 11,
+    fields: [
+      { key: "subject",        label: "Тема консультации",   type: "text",     required: true },
+      { key: "specialty",      label: "Специальность врача", type: "select",   required: true, options: ["Терапевт", "Педиатр", "Психолог", "Кардиолог", "Дерматолог", "Иное"] },
+      { key: "symptoms",       label: "Жалобы / симптомы",   type: "textarea", required: true },
+      { key: "preferredDate",  label: "Желаемая дата",       type: "date",     required: false },
+      { key: "preferredTime",  label: "Желаемое время",      type: "select",   required: false, options: ["09:00–12:00", "12:00–15:00", "15:00–18:00", "18:00–21:00"] },
+      { key: "contactPhone",   label: "Телефон для связи",   type: "text",     required: false }
+    ]
+  },
+  party: {
+    name: "Регистрация политической партии", order: 12,
+    fields: [
+      { key: "subject",      label: "Название партии",       type: "text",     required: true },
+      { key: "shortName",    label: "Аббревиатура",          type: "text",     required: false },
+      { key: "ideology",     label: "Идеология",             type: "select",   required: true, options: ["Либеральная", "Социал-демократическая", "Консервативная", "Зелёная", "Иная"] },
+      { key: "founders",     label: "Основатели (ФИО)",      type: "textarea", required: true },
+      { key: "membersCount", label: "Число членов",          type: "number",   required: true },
+      { key: "program",      label: "Программа партии",      type: "textarea", required: true }
+    ]
+  },
+  tax: {
+    name: "Налоговая декларация", order: 13,
+    fields: [
+      { key: "subject",  label: "Период (например 2026)",  type: "text",     required: true },
+      { key: "year",     label: "Год",                     type: "number",   required: true },
+      { key: "income",   label: "Доход за год (₮)",        type: "number",   required: true },
+      { key: "expenses", label: "Расходы (₮)",             type: "number",   required: false },
+      { key: "sources",  label: "Источники дохода",        type: "textarea", required: true },
+      { key: "notes",    label: "Дополнительно",           type: "textarea", required: false }
     ]
   }
 };
 
 const DEFAULT_FAQ = {
   faq_1: { question: "Что такое ЖакидУслуги?",
-           answer: "Единый портал государственных услуг Республики Жакид. Здесь можно подать заявление, получить официальный ответ и просмотреть свои документы.",
+           answer: "Единый портал государственных услуг Республики Жакид.",
            order: 1, createdAt: Date.now() },
   faq_2: { question: "Сколько рассматривается заявление?",
-           answer: "Обычно 3–7 рабочих дней. Срок может быть продлён, если требуется дополнительная проверка — сотрудник укажет это в переписке.",
+           answer: "Обычно 3–7 рабочих дней. Срок может быть продлён, если требуется дополнительная проверка.",
            order: 2, createdAt: Date.now() },
-  faq_3: { question: "Как я получу официальный ответ?",
-           answer: "Ответ появится прямо в личном кабинете в карточке заявления, а также в переписке. Статус меняется на «Принято», когда сотрудник дал ответ.",
+  faq_3: { question: "Что означают статусы?",
+           answer: "«Отправлено» — заявление попало в базу. «Получено» — сотрудник открыл и рассматривает. «Принято» — вынесено решение и дан ответ.",
            order: 3, createdAt: Date.now() },
-  faq_4: { question: "Что означает статус «Получено»?",
-           answer: "Сотрудник открыл ваше заявление и приступил к его рассмотрению.",
+  faq_4: { question: "Можно ли добавить документ самому?",
+           answer: "Да, в разделе «Мои документы» есть кнопка «Добавить документ». Официальные документы от госорганов помечены 🏛️, личные — 📝.",
            order: 4, createdAt: Date.now() },
-  faq_5: { question: "Можно ли добавить документ самому?",
-           answer: "Да, в разделе «Мои документы» есть кнопка «Добавить документ». Такие записи помечаются 📝. Официальные документы от госорганов помечены 🏛️ — их выдаёт уполномоченный сотрудник.",
+  faq_5: { question: "Как найти моё заявление?",
+           answer: "У каждого заявления есть ID вида #A3F8B21C — он показан в карточке заявления. По нему можно искать в «Моих заявлениях» и в очереди сотрудника.",
            order: 5, createdAt: Date.now() }
 };
 
-/* ==================== СОСТОЯНИЕ ==================== */
+/* ═══════════════ СОСТОЯНИЕ ═══════════════ */
 
-let me = null;
-let role = "user";
+let me        = null;
+let profile   = {};
+let role      = "user";
 let categories = {};
-let staffCats = {};
+let staffCats  = {};
+const pendingCategory = { value: null };
 
 let globalSubs = [];
-let tabSubs = [];
+let tabSubs    = [];
 
 const unsubGlobal = () => { globalSubs.forEach(f => { try { f(); } catch (e) {} }); globalSubs = []; };
 const unsubTab    = () => { tabSubs.forEach(f => { try { f(); } catch (e) {} }); tabSubs = []; };
 const subG = f => globalSubs.push(f);
 const sub  = f => tabSubs.push(f);
 
-/* ==================== ХЕЛПЕРЫ ==================== */
+/* ═══════════════ ХЕЛПЕРЫ ═══════════════ */
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g,
   c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-const fmt = t => t ? new Date(t).toLocaleString("ru-RU") : "";
+const fmt     = t => t ? new Date(t).toLocaleString("ru-RU") : "";
+const fmtDate = t => t ? new Date(t).toLocaleDateString("ru-RU") : "";
+const shortId = id => id ? "#" + id.slice(-8).toUpperCase() : "";
 
-const catName   = id => categories[id]?.name || id;
+const catName = id => categories[id]?.name || id;
 const catFields = id => (categories[id]?.fields || []).filter(f => f.key !== "subject");
+
+function fieldLabel(catId, key) {
+  const f = (categories[catId]?.fields || []).find(x => x.key === key);
+  if (f) return f.label;
+  for (const c of Object.values(categories)) {
+    const ff = (c?.fields || []).find(x => x.key === key);
+    if (ff) return ff.label;
+  }
+  return key;
+}
 
 function sortedEntries(obj) {
   return Object.entries(obj || {}).sort((a, b) => (a[1]?.order || 0) - (b[1]?.order || 0));
@@ -155,27 +236,28 @@ function sortedEntries(obj) {
 const canDeleteApp = cat => role === "admin" || (role === "staff" && staffCats[cat] === true);
 const canIssueDocs = ()  => role === "admin" || (role === "staff" && staffCats["documents"] === true);
 
-/* ==================== СКАЧИВАНИЕ / УДАЛЕНИЕ ЗАЯВЛЕНИЯ ==================== */
+function switchTab(k) {
+  const btn = root.querySelector(`#tabs [data-tab="${k}"]`);
+  if (btn) btn.click();
+}
+
+/* ═══════════════ АРХИВ / УДАЛЕНИЕ ═══════════════ */
 
 function downloadApp(a, id) {
   const cat  = categories[a.category];
   const msgs = Object.entries(a.messages || {})
     .sort((x, y) => (x[1].createdAt || 0) - (y[1].createdAt || 0));
 
-  const L = [];
-  L.push("=".repeat(62));
-  L.push("ЖАКИДУСЛУГИ · РЕСПУБЛИКА ЖАКИД");
-  L.push("АРХИВНАЯ КОПИЯ ЗАЯВЛЕНИЯ");
-  L.push("=".repeat(62), "");
-  L.push(`Номер заявления: ${id}`);
-  L.push(`Категория:       ${cat?.name || a.category}`);
-  L.push(`Статус:          ${STATUS[a.status] || a.status}`);
-  L.push(`Дата подачи:     ${fmt(a.createdAt)}`);
-  L.push(`Заявитель:       ${a.authorName || "—"} (${a.uid})`, "");
-  L.push("— Поля заявления —");
-  (cat?.fields || []).forEach(f => {
-    const v = a.fields?.[f.key];
-    if (v) L.push(`${f.label}: ${v}`);
+  const L = ["=" .repeat(62), "ЖАКИДУСЛУГИ · РЕСПУБЛИКА ЖАКИД", "АРХИВНАЯ КОПИЯ ЗАЯВЛЕНИЯ", "=".repeat(62), ""];
+  L.push(`ID заявления:  ${shortId(id)} (${id})`);
+  L.push(`Категория:     ${cat?.name || a.category}`);
+  L.push(`Статус:        ${STATUS[a.status] || a.status}`);
+  L.push(`Дата подачи:   ${fmt(a.createdAt)}`);
+  L.push(`Заявитель:     ${a.authorName || "—"} (${a.uid})`);
+  if (a.assignee) L.push(`Ответственный: ${a.assignee.name || a.assignee.uid}`);
+  L.push("", "— Поля заявления —");
+  Object.entries(a.fields || {}).forEach(([k, v]) => {
+    if (v) L.push(`${fieldLabel(a.category, k)}: ${v}`);
   });
   L.push("", "— Переписка —");
   if (!msgs.length) L.push("(нет сообщений)");
@@ -189,10 +271,8 @@ function downloadApp(a, id) {
   const url  = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `zayavlenie-${id.slice(0,8)}-${new Date().toISOString().slice(0,10)}.txt`;
-  document.body.append(link);
-  link.click();
-  link.remove();
+  link.download = `zayavlenie-${id.slice(-8)}-${new Date().toISOString().slice(0,10)}.txt`;
+  document.body.append(link); link.click(); link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
@@ -220,10 +300,7 @@ async function deleteApplication(appId) {
   const snap = await get(ref(db, `applications/${appId}`));
   const a = snap.val();
   if (!a) { alert("Заявление уже удалено."); return; }
-  if (!confirm(
-    `Заявление №${appId.slice(0,8)} будет сохранено на ваше устройство (файл .txt), ` +
-    `затем удалено из базы.\n\nПроверьте папку загрузок после подтверждения. Продолжить?`
-  )) return;
+  if (!confirm(`Заявление ${shortId(appId)} будет сохранено в файл .txt и удалено из базы.\n\nПродолжить?`)) return;
 
   downloadApp(a, appId);
   await new Promise(r => setTimeout(r, 400));
@@ -232,14 +309,49 @@ async function deleteApplication(appId) {
     await update(ref(db), {
       [`applications/${appId}`]:             null,
       [`userApps/${a.uid}/${appId}`]:        null,
-      [`staffQueue/${a.category}/${appId}`]: null
+      [`staffQueue/${a.category}/${appId}`]: null,
+      [`applicationNotes/${appId}`]:         null
     });
-  } catch (e) {
-    alert("Не удалось удалить из базы: " + e.message);
-  }
+  } catch (e) { alert("Не удалось удалить: " + e.message); }
 }
 
-/* ==================== АВТОРИЗАЦИЯ ==================== */
+/* ═══════════════ УВЕДОМЛЕНИЯ ═══════════════ */
+
+async function getUnread() {
+  if (role !== "user") return { count: 0, snapshot: {} };
+  const key  = `seen_${me.uid}`;
+  const seen = JSON.parse(localStorage.getItem(key) || "{}");
+  const snap = await get(ref(db, `userApps/${me.uid}`));
+  const ids  = Object.keys(snap.val() || {});
+  const current = {};
+  let count = 0;
+
+  for (const id of ids) {
+    const a = (await get(ref(db, `applications/${id}`))).val();
+    if (!a) continue;
+    const mc = Object.keys(a.messages || {}).length;
+    current[id] = { status: a.status, msgCount: mc };
+    const prev = seen[id];
+    if (prev && a.status === "accepted" && (prev.status !== "accepted" || prev.msgCount < mc)) count++;
+  }
+  return { count, snapshot: current };
+}
+
+async function refreshUnreadBadge() {
+  if (role !== "user") return;
+  try {
+    const { count } = await getUnread();
+    const tabBtn = root.querySelector('#tabs [data-tab="apps"]');
+    if (!tabBtn) return;
+    let badge = tabBtn.querySelector(".badge-num");
+    if (count > 0) {
+      if (!badge) { badge = document.createElement("span"); badge.className = "badge-num"; tabBtn.appendChild(badge); }
+      badge.textContent = count;
+    } else if (badge) badge.remove();
+  } catch (e) { /* silent */ }
+}
+
+/* ═══════════════ АВТОРИЗАЦИЯ ═══════════════ */
 
 function renderAuth() {
   root.innerHTML = `
@@ -281,9 +393,7 @@ function renderAuth() {
       const cred = await createUserWithEmailAndPassword(auth, f.email.value, f.password.value);
       await updateProfile(cred.user, { displayName: f.name.value });
       await set(ref(db, `users/${cred.user.uid}`), {
-        displayName: f.name.value,
-        email: f.email.value,
-        createdAt: Date.now()
+        displayName: f.name.value, email: f.email.value, createdAt: Date.now()
       });
     } catch (err) { root.querySelector("#e2").textContent = "Ошибка: " + err.message; }
   };
@@ -295,30 +405,33 @@ onAuthStateChanged(auth, async u => {
   if (!u) { renderAuth(); return; }
 
   try {
-    const [r, c, sc] = await Promise.all([
+    const [r, c, sc, p] = await Promise.all([
       get(ref(db, `roles/${u.uid}`)),
       get(ref(db, "categories")),
-      get(ref(db, `staffCategories/${u.uid}`))
+      get(ref(db, `staffCategories/${u.uid}`)),
+      get(ref(db, `users/${u.uid}`))
     ]);
     role       = r.val()  || "user";
     categories = c.val()  || {};
     staffCats  = sc.val() || {};
+    profile    = p.val()  || {};
   } catch (e) {
     console.error(e);
-    role = "user"; categories = {}; staffCats = {};
+    role = "user"; categories = {}; staffCats = {}; profile = {};
   }
 
   subG(onValue(ref(db, `roles/${u.uid}`), snap => {
-    const newRole = snap.val() || "user";
-    if (newRole !== role) { role = newRole; renderDash(); }
+    const nr = snap.val() || "user";
+    if (nr !== role) { role = nr; renderDash(); }
   }));
-  subG(onValue(ref(db, "categories"), snap => { categories = snap.val() || {}; }));
-  subG(onValue(ref(db, `staffCategories/${u.uid}`), snap => { staffCats = snap.val() || {}; }));
+  subG(onValue(ref(db, "categories"),             snap => { categories = snap.val() || {}; }));
+  subG(onValue(ref(db, `staffCategories/${u.uid}`), snap => { staffCats  = snap.val() || {}; }));
+  subG(onValue(ref(db, `users/${u.uid}`),           snap => { profile    = snap.val() || {}; }));
 
   renderDash();
 });
 
-/* ==================== КАРКАС ==================== */
+/* ═══════════════ КАРКАС ═══════════════ */
 
 function renderDash() {
   unsubTab();
@@ -328,6 +441,7 @@ function renderDash() {
       <div>
         <strong>${esc(me.displayName || me.email)}</strong>
         <span class="badge">${ROLE_RU[role]}</span>
+        ${renderServiceBadge()}
       </div>
       <button id="logout" class="mini">Выйти</button>
     </header>
@@ -337,9 +451,12 @@ function renderDash() {
   root.querySelector("#logout").onclick = () => signOut(auth);
 
   const tabs = [
+    ["home",       "Главная",           true],
     ["apps",       "Мои заявления",     true],
     ["docs",       "Мои документы",     true],
+    ["wanted",     "Розыск",            true],
     ["faq",        "Частые вопросы",    true],
+    ["profile",    "Профиль",           true],
     ["queue",      "Очередь",           role !== "user"],
     ["docs-issue", "Выдать документ",   canIssueDocs()],
     ["admin",      "Администрирование", role === "admin"]
@@ -350,12 +467,9 @@ function renderDash() {
   nav.innerHTML = tabs.map(([k, t]) => `<button data-tab="${k}">${t}</button>`).join("");
 
   const mounts = {
-    apps: mountApps,
-    docs: mountDocs,
-    faq: mountFaq,
-    queue: mountQueue,
-    "docs-issue": mountIssueDoc,
-    admin: mountAdmin
+    home: mountHome, apps: mountApps, docs: mountDocs,
+    wanted: mountWanted, faq: mountFaq, profile: mountProfile,
+    queue: mountQueue, "docs-issue": mountIssueDoc, admin: mountAdmin
   };
 
   const go = k => {
@@ -367,10 +481,19 @@ function renderDash() {
     const b = e.target.closest("button[data-tab]");
     if (b) go(b.dataset.tab);
   };
-  go("apps");
+
+  go("home");
+  refreshUnreadBadge();
 }
 
-/* ==================== ФОРМА ==================== */
+function renderServiceBadge() {
+  if (!profile.serviceType) return "";
+  const type = SERVICE_TYPES[profile.serviceType] || "";
+  const bits = [type, profile.rank, profile.unit].filter(Boolean).map(esc);
+  return `<span class="service-badge" title="Служба">🛡️ ${bits.join(" · ")}</span>`;
+}
+
+/* ═══════════════ ФОРМА ═══════════════ */
 
 function fieldHtml(f, value = "") {
   const req  = f.required ? "required" : "";
@@ -394,11 +517,11 @@ function fieldHtml(f, value = "") {
   return `<label><span>${esc(f.label)}${f.required ? " *" : ""}</span>${control}</label>`;
 }
 
-/* ==================== КАРТОЧКА ЗАЯВЛЕНИЯ ==================== */
+/* ═══════════════ КАРТОЧКА ЗАЯВЛЕНИЯ ═══════════════ */
 
 function renderAppCard(node, a, id, opts = {}) {
   if (!a) { node.remove(); return; }
-  const sig = JSON.stringify(a);
+  const sig = JSON.stringify(a) + "|" + (opts.staffList || []).length;
   if (node.dataset.sig === sig) return;
   node.dataset.sig = sig;
 
@@ -407,21 +530,26 @@ function renderAppCard(node, a, id, opts = {}) {
   const title    = a.fields?.subject || cat?.name || a.category;
   const msgs     = Object.entries(a.messages || {})
     .sort((x, y) => (x[1].createdAt || 0) - (y[1].createdAt || 0));
+  const staffList = opts.staffList || [];
 
-  const fieldsHtml = catFields(a.category)
-    .filter(f => a.fields?.[f.key] != null && a.fields[f.key] !== "")
-    .map(f => `<div><b>${esc(f.label)}:</b> ${esc(a.fields[f.key])}</div>`).join("");
+  const fieldsHtml = Object.entries(a.fields || {})
+    .filter(([, v]) => v != null && v !== "")
+    .map(([k, v]) => `<div><b>${esc(fieldLabel(a.category, k))}:</b> ${esc(v)}</div>`).join("");
 
   const canStatus = opts.staff && (role === "admin" || staffCats[a.category] === true);
   const canDel    = opts.staff && canDeleteApp(a.category);
+  const canAssign = canStatus;
+  const canChangeCat = opts.staff && (role === "admin" || (role === "staff" && staffCats[a.category] === true));
 
   node.innerHTML = `
     <div class="app-head">
       <strong>${esc(title)}</strong>
       <span class="status s-${esc(a.status)}">${STATUS[a.status] || esc(a.status)}</span>
     </div>
+    <div class="app-id" title="${esc(id)}">${esc(shortId(id))}</div>
     <div class="muted">${esc(catName(a.category))} · ${fmt(a.createdAt)}</div>
     ${opts.staff ? `<div class="muted">Заявитель: ${esc(a.authorName || a.uid)}</div>` : ""}
+    ${a.assignee ? `<div class="muted">Ответственный: ${esc(a.assignee.name || a.assignee.uid)}</div>` : ""}
     <div class="app-fields">${fieldsHtml}</div>
 
     <div class="thread">
@@ -440,12 +568,43 @@ function renderAppCard(node, a, id, opts = {}) {
         </select>
       </label>` : ""}
 
+    ${canAssign ? `
+      <label><span>Ответственный</span>
+        <select class="assignee-sel" data-id="${esc(id)}">
+          <option value="">— не назначен —</option>
+          ${staffList.map(s =>
+            `<option value="${esc(s.uid)}" ${a.assignee?.uid === s.uid ? "selected" : ""}>${esc(s.name)}</option>`
+          ).join("")}
+        </select>
+      </label>` : ""}
+
+    ${canChangeCat ? `
+      <label><span>Категория</span>
+        <select class="category-sel" data-id="${esc(id)}">
+          ${sortedEntries(categories).map(([k, c]) =>
+            `<option value="${esc(k)}" ${a.category === k ? "selected" : ""}>${esc(c.name)}</option>`
+          ).join("")}
+        </select>
+      </label>` : ""}
+
     <form class="reply" data-id="${esc(id)}">
       <label><span>Сообщение</span>
         <input name="text" placeholder="Написать сообщение…" required value="${esc(oldDraft)}">
       </label>
       <button class="mini">Отправить</button>
     </form>
+
+    ${opts.staff ? `
+      <details style="margin-top:8px;">
+        <summary style="cursor:pointer;font-size:14px;opacity:.8;">🕵️ Внутренние заметки</summary>
+        <div class="notes-box" data-id="${esc(id)}" style="margin-top:8px;padding:8px;background:#8881;border-radius:8px;">
+          <div class="notes-list" data-id="${esc(id)}"><p class="muted" style="font-size:13px;">Загрузка…</p></div>
+          <form class="note-form" data-id="${esc(id)}" style="margin-top:8px;">
+            <input name="text" placeholder="Внутренняя заметка (гражданин не увидит)" required>
+            <button class="mini" style="margin-top:4px;">Добавить</button>
+          </form>
+        </div>
+      </details>` : ""}
 
     ${canDel ? `
       <div style="margin-top:8px;text-align:right;">
@@ -456,6 +615,20 @@ function renderAppCard(node, a, id, opts = {}) {
       </div>` : ""}`;
 
   if (opts.staff && a.status === "sent") observeAsReceived(id, node);
+
+  // подгрузка заметок
+  if (opts.staff) {
+    const listEl = node.querySelector(`.notes-list[data-id="${id}"]`);
+    if (listEl) {
+      get(ref(db, `applicationNotes/${id}`)).then(s => {
+        const notes = s.val() || {};
+        const entries = Object.entries(notes).sort((x, y) => (x[1].createdAt || 0) - (y[1].createdAt || 0));
+        listEl.innerHTML = entries.length
+          ? entries.map(([, n]) => `<div style="font-size:13px;margin-bottom:6px;"><b>${esc(n.byName || "сотрудник")}</b> · ${fmt(n.createdAt)}<br>${esc(n.text)}</div>`).join("")
+          : `<p class="muted" style="font-size:13px;">Заметок нет</p>`;
+      }).catch(() => {});
+    }
+  }
 }
 
 async function onReply(e) {
@@ -468,6 +641,7 @@ async function onReply(e) {
     await push(ref(db, `applications/${f.dataset.id}/messages`),
       { by: me.uid, role, text, createdAt: Date.now() });
     f.reset();
+    refreshUnreadBadge();
   } catch (err) { alert("Не удалось отправить: " + err.message); }
 }
 
@@ -478,68 +652,242 @@ async function onStatusChange(e) {
   catch (err) { alert("Не удалось изменить статус: " + err.message); }
 }
 
-/* ==================== МОИ ЗАЯВЛЕНИЯ ==================== */
+async function onAssigneeChange(e) {
+  const sel = e.target.closest("select.assignee-sel");
+  if (!sel) return;
+  const uid = sel.value;
+  const name = sel.options[sel.selectedIndex]?.textContent || uid;
+  try {
+    if (!uid) await set(ref(db, `applications/${sel.dataset.id}/assignee`), null);
+    else await set(ref(db, `applications/${sel.dataset.id}/assignee`), { uid, name });
+  } catch (err) { alert("Не удалось назначить: " + err.message); }
+}
+
+async function onCategoryChange(e) {
+  const sel = e.target.closest("select.category-sel");
+  if (!sel) return;
+  const appId  = sel.dataset.id;
+  const newCat = sel.value;
+  const snap   = await get(ref(db, `applications/${appId}`));
+  const oldCat = snap.val()?.category;
+  if (!oldCat || oldCat === newCat) return;
+  try {
+    await update(ref(db), {
+      [`applications/${appId}/category`]:  newCat,
+      [`staffQueue/${oldCat}/${appId}`]:   null,
+      [`staffQueue/${newCat}/${appId}`]:   true
+    });
+  } catch (err) {
+    alert("Ошибка смены категории: " + err.message);
+    sel.value = oldCat;
+  }
+}
+
+async function onNote(e) {
+  const f = e.target.closest("form.note-form");
+  if (!f) return;
+  e.preventDefault();
+  const text = f.elements.text.value.trim();
+  if (!text) return;
+  try {
+    await push(ref(db, `applicationNotes/${f.dataset.id}`),
+      { by: me.uid, byName: me.displayName || me.email, text, createdAt: Date.now() });
+    f.reset();
+    // перерисовать карточку
+    const box = f.closest(".app-item");
+    if (box) box.dataset.sig = ""; // сброс, чтобы следующий update перерисовал
+  } catch (err) { alert(err.message); }
+}
+
+/* ═══════════════ ГЛАВНАЯ ═══════════════ */
+
+function mountHome(view) {
+  view.innerHTML = `
+    <h2>Добро пожаловать${me.displayName ? ", " + esc(me.displayName) : ""}</h2>
+    <div style="margin-bottom:12px;">
+      ${renderServiceBadge()}
+      <span class="badge">${ROLE_RU[role]}</span>
+    </div>
+
+    <section class="card">
+      <h2>📰 Новости правительства</h2>
+      <div id="news-feed"><p class="muted">Загрузка…</p></div>
+    </section>
+
+    <section class="card">
+      <h2>⚡ Быстрые действия</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button data-quick="citizenship" class="mini">Гражданство</button>
+        <button data-quick="marriage" class="mini">Брак</button>
+        <button data-quick="telemedicine" class="mini">Телемедицина</button>
+        <button data-quick="tax" class="mini">Налоги</button>
+        <button data-quick="__all__" class="mini primary">Все услуги →</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>🔴 В розыске</h2>
+      <div id="wanted-teaser"><p class="muted">Загрузка…</p></div>
+      <button id="wanted-more" class="mini" style="margin-top:8px;">Весь список →</button>
+    </section>
+  `;
+
+  sub(onValue(ref(db, "news"), snap => {
+    const items = Object.entries(snap.val() || {})
+      .map(([id, n]) => ({ id, ...n }))
+      .sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      }).slice(0, 5);
+
+    const feed = view.querySelector("#news-feed");
+    if (!items.length) { feed.innerHTML = `<p class="muted">Пока новостей нет.</p>`; return; }
+    feed.innerHTML = items.map(n => `
+      <div class="news-item ${n.pinned ? "pinned" : ""}">
+        <div class="news-title">${n.pinned ? "📌 " : ""}${esc(n.title)}</div>
+        <div class="news-meta">${esc(n.author || "администрация")} · ${fmt(n.createdAt)}</div>
+        <div class="news-body">${esc(n.body)}</div>
+      </div>`).join("");
+  }));
+
+  sub(onValue(ref(db, "wanted"), snap => {
+    const items = Object.entries(snap.val() || {})
+      .filter(([, w]) => w.status === "wanted")
+      .slice(0, 3);
+    const t = view.querySelector("#wanted-teaser");
+    if (!items.length) { t.innerHTML = `<p class="muted">Список пуст.</p>`; return; }
+    t.innerHTML = items.map(([id, w]) => `
+      <div class="wanted-card">
+        <b>${esc(w.name)}</b> · <span class="wanted-status ${esc(w.status)}">${WANTED_STATUS[w.status]}</span>
+        <div class="muted">С ${esc(w.since)}: ${esc(w.reason)}</div>
+      </div>`).join("");
+  }));
+
+  view.querySelector('[data-quick="__all__"]').onclick = () => {
+    pendingCategory.value = null; switchTab("apps");
+  };
+  view.querySelectorAll("[data-quick]").forEach(btn => {
+    if (btn.dataset.quick === "__all__") return;
+    btn.onclick = () => { pendingCategory.value = btn.dataset.quick; switchTab("apps"); };
+  });
+  view.querySelector("#wanted-more").onclick = () => switchTab("wanted");
+}
+
+/* ═══════════════ МОИ ЗАЯВЛЕНИЯ ═══════════════ */
 
 function mountApps(view) {
   const catOptions = sortedEntries(categories)
     .map(([id, c]) => `<option value="${esc(id)}">${esc(c.name)}</option>`).join("");
 
   view.innerHTML = `
+    <div id="unread-slot"></div>
+    <div id="draft-slot"></div>
+
     <section class="card">
       <h2>Подать заявление</h2>
       ${catOptions
         ? `<label><span>Категория</span><select id="cat-select">${catOptions}</select></label>
            <form id="f-new">
              <div id="fields"></div>
-             <button class="primary">Отправить заявление</button>
+             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+               <button class="primary" style="flex:1;">Отправить заявление</button>
+               <button type="button" id="save-draft" class="mini">💾 Сохранить черновик</button>
+             </div>
            </form>
            <p class="err" id="e-new"></p>`
-        : `<p class="muted">Администратор ещё не создал категории. Зайдите позже.</p>`}
+        : `<p class="muted">Администратор ещё не создал категории.</p>`}
     </section>
+
     <h2>Мои заявления</h2>
+    <div class="search-row">
+      <input id="apps-search" placeholder="🔍 Поиск по ID, теме, содержанию…">
+    </div>
     <div id="apps"></div>
     <p id="empty" class="muted">Заявлений пока нет.</p>`;
 
   if (catOptions) {
     const catSel   = view.querySelector("#cat-select");
     const fieldsEl = view.querySelector("#fields");
+    const form     = view.querySelector("#f-new");
 
-    const paintForm = () => {
+    const paintForm = (values = {}) => {
       const cat = categories[catSel.value];
-      fieldsEl.innerHTML = (cat?.fields || []).map(f => fieldHtml(f)).join("");
+      fieldsEl.innerHTML = (cat?.fields || []).map(f => fieldHtml(f, values[f.key])).join("");
     };
-    catSel.onchange = paintForm;
+    catSel.onchange = () => paintForm();
     paintForm();
 
-    view.querySelector("#f-new").onsubmit = async e => {
+    // восстановление из pendingCategory (быстрые действия)
+    if (pendingCategory.value && categories[pendingCategory.value]) {
+      catSel.value = pendingCategory.value;
+      paintForm();
+      pendingCategory.value = null;
+    }
+
+    // загрузка черновика
+    const draftSlot = view.querySelector("#draft-slot");
+    get(ref(db, `drafts/${me.uid}`)).then(snap => {
+      const d = snap.val();
+      if (!d) return;
+      draftSlot.innerHTML = `
+        <div class="draft-banner">
+          <span>📝 Черновик: <b>${esc(catName(d.category))}</b> от ${fmt(d.savedAt)}</span>
+          <button class="mini" id="draft-resume">Продолжить</button>
+          <button class="mini" id="draft-drop" style="color:#b91c1c;">Удалить</button>
+        </div>`;
+      view.querySelector("#draft-resume").onclick = () => {
+        if (categories[d.category]) {
+          catSel.value = d.category;
+          paintForm(d.fields || {});
+        }
+        draftSlot.innerHTML = "";
+      };
+      view.querySelector("#draft-drop").onclick = async () => {
+        await remove(ref(db, `drafts/${me.uid}`));
+        draftSlot.innerHTML = "";
+      };
+    });
+
+    view.querySelector("#save-draft").onclick = async () => {
+      const fd = new FormData(form);
+      const fields = {};
+      for (const f of (categories[catSel.value]?.fields || [])) fields[f.key] = fd.get(f.key) ?? "";
+      try {
+        await set(ref(db, `drafts/${me.uid}`), { category: catSel.value, fields, savedAt: Date.now() });
+        view.querySelector("#e-new").textContent = "";
+        view.querySelector("#e-new").className = "ok";
+        view.querySelector("#e-new").textContent = "✓ Черновик сохранён";
+        setTimeout(() => { view.querySelector("#e-new").textContent = ""; view.querySelector("#e-new").className = "err"; }, 2000);
+      } catch (err) { view.querySelector("#e-new").textContent = "Ошибка: " + err.message; }
+    };
+
+    form.onsubmit = async e => {
       e.preventDefault();
       const cat = catSel.value;
       const fd  = new FormData(e.target);
       const fields = {};
-      for (const f of (categories[cat]?.fields || [])) {
-        fields[f.key] = fd.get(f.key) ?? "";
-      }
+      for (const f of (categories[cat]?.fields || [])) fields[f.key] = fd.get(f.key) ?? "";
       if (!fields.subject) {
+        view.querySelector("#e-new").className = "err";
         view.querySelector("#e-new").textContent = "Заполните поле «Тема».";
         return;
       }
-
       const id = push(ref(db, "applications")).key;
       try {
-        await set(ref(db, `applications/${id}`), {
-          uid: me.uid,
-          authorName: me.displayName || me.email,
-          category: cat,
-          status: "sent",
-          createdAt: Date.now(),
-          fields
-        });
         await update(ref(db), {
+          [`applications/${id}`]: {
+            uid: me.uid, authorName: me.displayName || me.email,
+            category: cat, status: "sent", createdAt: Date.now(), fields
+          },
           [`userApps/${me.uid}/${id}`]: true,
           [`staffQueue/${cat}/${id}`]:  true
         });
+        await remove(ref(db, `drafts/${me.uid}`)).catch(() => {});
         e.target.reset();
         paintForm();
+        view.querySelector("#draft-slot").innerHTML = "";
+        view.querySelector("#e-new").className = "err";
         view.querySelector("#e-new").textContent = "";
       } catch (err) {
         view.querySelector("#e-new").textContent = "Ошибка: " + err.message;
@@ -547,8 +895,31 @@ function mountApps(view) {
     };
   }
 
+  // ── баннер непрочитанных ответов ──
+  (async () => {
+    if (role !== "user") return;
+    try {
+      const { count } = await getUnread();
+      if (!count) return;
+      const slot = view.querySelector("#unread-slot");
+      slot.innerHTML = `
+        <div class="unread-banner">
+          <span>🟢 У вас <b>${count}</b> новых ответ(а/ов) от ведомств</span>
+          <button class="mini" id="mark-read">Отметить прочитанными</button>
+        </div>`;
+      view.querySelector("#mark-read").onclick = async () => {
+        const { snapshot } = await getUnread();
+        localStorage.setItem(`seen_${me.uid}`, JSON.stringify(snapshot));
+        slot.innerHTML = "";
+        refreshUnreadBadge();
+      };
+    } catch {}
+  })();
+
+  // ── список заявлений + поиск ──
   const listEl  = view.querySelector("#apps");
   const emptyEl = view.querySelector("#empty");
+  const search  = view.querySelector("#apps-search");
   listEl.addEventListener("submit", onReply);
 
   const items = new Map();
@@ -564,14 +935,33 @@ function mountApps(view) {
       const node = document.createElement("div");
       node.className = "app-item";
       listEl.append(node);
-      const unsub = onValue(ref(db, `applications/${id}`),
-        s => renderAppCard(node, s.val(), id));
+      const unsub = onValue(ref(db, `applications/${id}`), s => {
+        const a = s.val();
+        if (a) {
+          node.dataset.search = (
+            shortId(id) + " " + id + " " +
+            (a.fields?.subject || "") + " " +
+            Object.values(a.fields || {}).join(" ")
+          ).toLowerCase();
+        }
+        renderAppCard(node, a, id);
+        applySearch();
+      });
       items.set(id, { node, unsub });
     }
+    applySearch();
   }));
+
+  const applySearch = () => {
+    const q = (search.value || "").toLowerCase().trim();
+    for (const { node } of items.values()) {
+      node.hidden = q && !(node.dataset.search || "").includes(q);
+    }
+  };
+  search.oninput = applySearch;
 }
 
-/* ==================== МОИ ДОКУМЕНТЫ ==================== */
+/* ═══════════════ МОИ ДОКУМЕНТЫ ═══════════════ */
 
 function mountDocs(view) {
   view.innerHTML = `
@@ -606,24 +996,16 @@ function mountDocs(view) {
     const id = push(ref(db, `userDocs/${me.uid}`)).key;
     try {
       await set(ref(db, `userDocs/${me.uid}/${id}`), {
-        type:       fd.get("type"),
-        title:      fd.get("title").trim(),
-        number:     fd.get("number").trim()     || null,
-        issuedAt:   fd.get("issuedAt"),
-        issuedBy:   fd.get("issuedBy").trim()   || null,
-        validUntil: fd.get("validUntil")        || null,
-        status:     "active",
-        notes:      fd.get("notes").trim()      || null,
-        addedBy:    "self",
-        createdAt:  Date.now(),
-        createdBy:  me.uid
+        type: fd.get("type"), title: fd.get("title").trim(),
+        number: fd.get("number").trim() || null, issuedAt: fd.get("issuedAt"),
+        issuedBy: fd.get("issuedBy").trim() || null, validUntil: fd.get("validUntil") || null,
+        status: "active", notes: fd.get("notes").trim() || null,
+        addedBy: "self", createdAt: Date.now(), createdBy: me.uid
       });
       e.target.reset();
       view.querySelector("#e-self-doc").textContent = "";
       e.target.closest("details").open = false;
-    } catch (err) {
-      view.querySelector("#e-self-doc").textContent = "Ошибка: " + err.message;
-    }
+    } catch (err) { view.querySelector("#e-self-doc").textContent = "Ошибка: " + err.message; }
   };
 
   const listEl  = view.querySelector("#docs");
@@ -632,7 +1014,7 @@ function mountDocs(view) {
   listEl.addEventListener("click", async e => {
     const b = e.target.closest("[data-del-doc]");
     if (!b) return;
-    if (!confirm("Удалить этот документ из картотеки?")) return;
+    if (!confirm("Удалить документ из картотеки?")) return;
     try { await remove(ref(db, `userDocs/${me.uid}/${b.dataset.delDoc}`)); }
     catch (err) { alert(err.message); }
   });
@@ -640,7 +1022,6 @@ function mountDocs(view) {
   sub(onValue(ref(db, `userDocs/${me.uid}`), snap => {
     const entries = Object.entries(snap.val() || {})
       .sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
-
     emptyEl.hidden = entries.length > 0;
 
     listEl.innerHTML = entries.map(([id, d]) => {
@@ -664,7 +1045,7 @@ function mountDocs(view) {
   }));
 }
 
-/* ==================== FAQ ==================== */
+/* ═══════════════ FAQ ═══════════════ */
 
 function mountFaq(view) {
   view.innerHTML = `<h2>Частые вопросы</h2><div id="faq"></div>`;
@@ -682,11 +1063,144 @@ function mountFaq(view) {
   }));
 }
 
-/* ==================== ОЧЕРЕДЬ ==================== */
+/* ═══════════════ РОЗЫСК ═══════════════ */
+
+function mountWanted(view) {
+  view.innerHTML = `
+    <h2>Реестр розыска</h2>
+    <p class="muted">Публичный список лиц, находящихся в розыске. Если вы обладаете информацией — сообщите в МВД через «Мои заявления» → «Жалоба на решение органа» или напрямую сотруднику.</p>
+    <div class="search-row">
+      <input id="wanted-search" placeholder="🔍 Поиск по имени или описанию…">
+    </div>
+    <div id="wanted-list"></div>
+  `;
+
+  const search = view.querySelector("#wanted-search");
+  const list   = view.querySelector("#wanted-list");
+  let allItems = [];
+
+  const paint = () => {
+    const q = (search.value || "").toLowerCase().trim();
+    const items = allItems.filter(([, w]) =>
+      !q || w.name.toLowerCase().includes(q) || (w.reason || "").toLowerCase().includes(q) ||
+      (w.description || "").toLowerCase().includes(q)
+    );
+    list.innerHTML = items.length
+      ? items.map(([, w]) => `
+          <div class="wanted-card ${esc(w.status)}">
+            <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;">
+              <b>${esc(w.name)}</b>
+              <span class="wanted-status ${esc(w.status)}">${WANTED_STATUS[w.status] || esc(w.status)}</span>
+            </div>
+            <div class="muted" style="font-size:14px;margin-top:4px;">С ${esc(w.since)}: ${esc(w.reason)}</div>
+            ${w.lastSeen    ? `<div style="font-size:13px;margin-top:4px;"><b>Последнее место:</b> ${esc(w.lastSeen)}</div>` : ""}
+            ${w.description ? `<div style="font-size:13px;margin-top:4px;white-space:pre-wrap;">${esc(w.description)}</div>` : ""}
+            ${w.reward      ? `<div style="font-size:13px;margin-top:4px;color:#b8860b;"><b>Награда:</b> ${esc(w.reward)}</div>` : ""}
+          </div>`).join("")
+      : `<p class="muted">Никого не найдено.</p>`;
+  };
+
+  sub(onValue(ref(db, "wanted"), snap => {
+    allItems = Object.entries(snap.val() || {})
+      .sort((a, b) => {
+        const order = { wanted: 0, detained: 1, cleared: 2 };
+        return (order[a[1].status] || 0) - (order[b[1].status] || 0);
+      });
+    paint();
+  }));
+  search.oninput = paint;
+}
+
+/* ═══════════════ ПРОФИЛЬ ═══════════════ */
+
+function mountProfile(view) {
+  const u = profile;
+  view.innerHTML = `
+    <h2>Профиль</h2>
+    <div style="margin-bottom:12px;">
+      ${renderServiceBadge()}
+      <span class="badge">${ROLE_RU[role]}</span>
+    </div>
+
+    <form id="f-profile" class="card">
+      <label><span>Имя / ФИО</span><input name="displayName" value="${esc(u.displayName || "")}" required></label>
+      <label><span>Email</span><input value="${esc(me.email || "")}" disabled></label>
+      <label><span>Регион</span>
+        <select name="region">
+          <option value="">— не указан —</option>
+          ${REGIONS.map(r => `<option value="${esc(r)}" ${u.region === r ? "selected" : ""}>${esc(r)}</option>`).join("")}
+        </select>
+      </label>
+      <label><span>Дата рождения</span><input name="birthDate" type="date" value="${esc(u.birthDate || "")}"></label>
+      <label><span>Контактный телефон</span><input name="contactPhone" value="${esc(u.contactPhone || "")}" placeholder="+7 ..."></label>
+      <label><span>О себе</span><textarea name="bio" rows="3">${esc(u.bio || "")}</textarea></label>
+
+      <h3 style="margin-top:20px;">🛡️ Служба</h3>
+      <p class="muted" style="font-size:13px;">Заполните, если вы военнослужащий, сотрудник МВД, экстренных служб или судебной системы. Информация отображается в вашем профиле и в шапке сервиса.</p>
+
+      <label><span>Тип службы</span>
+        <select name="serviceType">
+          <option value="">— не служу —</option>
+          ${Object.entries(SERVICE_TYPES).map(([k, v]) =>
+            `<option value="${esc(k)}" ${u.serviceType === k ? "selected" : ""}>${esc(v)}</option>`).join("")}
+        </select>
+      </label>
+      <div id="service-fields" ${!u.serviceType ? "hidden" : ""}>
+        <label><span>Звание / должность</span><input name="rank" value="${esc(u.rank || "")}" placeholder="напр. Лейтенант"></label>
+        <label><span>Подразделение</span><input name="unit" value="${esc(u.unit || "")}" placeholder="напр. 3-й батальон"></label>
+      </div>
+
+      <button class="primary">Сохранить профиль</button>
+      <p class="ok" id="prof-ok"></p>
+      <p class="err" id="prof-err"></p>
+    </form>`;
+
+  const st = view.querySelector('[name="serviceType"]');
+  const sf = view.querySelector("#service-fields");
+  st.onchange = () => { sf.hidden = !st.value; };
+
+  view.querySelector("#f-profile").onsubmit = async e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const data = {
+      displayName: fd.get("displayName").trim(),
+      region:       fd.get("region") || null,
+      birthDate:    fd.get("birthDate") || null,
+      contactPhone: fd.get("contactPhone").trim() || null,
+      bio:          fd.get("bio").trim() || null,
+      serviceType:  fd.get("serviceType") || null,
+      rank:         fd.get("serviceType") ? (fd.get("rank").trim() || null) : null,
+      unit:         fd.get("serviceType") ? (fd.get("unit").trim() || null) : null
+    };
+    try {
+      await update(ref(db, `users/${me.uid}`), data);
+      await updateProfile(me, { displayName: data.displayName });
+      profile = { ...profile, ...data };
+      view.querySelector("#prof-ok").textContent = "✓ Сохранено";
+      view.querySelector("#prof-err").textContent = "";
+      // обновить бейдж в шапке
+      const old = root.querySelector(".service-badge");
+      const header = root.querySelector("header");
+      if (old) old.remove();
+      if (data.serviceType) {
+        const tmp = document.createElement("span");
+        tmp.innerHTML = renderServiceBadge();
+        header.querySelector(".badge").after(tmp.firstChild);
+      }
+    } catch (err) {
+      view.querySelector("#prof-err").textContent = "Ошибка: " + err.message;
+    }
+  };
+}
+
+/* ═══════════════ ОЧЕРЕДЬ ═══════════════ */
 
 async function mountQueue(view) {
   view.innerHTML = `
     <h2>Очередь заявлений</h2>
+    <div class="search-row">
+      <input id="queue-search" placeholder="🔍 Поиск по ID, ФИО, теме, тексту…">
+    </div>
     <div class="filter">
       <button data-f="all" class="active">Все</button>
       <button data-f="sent">Отправлено</button>
@@ -697,6 +1211,18 @@ async function mountQueue(view) {
 
   const q = view.querySelector("#q");
   let filter = "all";
+
+  // загружаем список сотрудников для dropdown «Ответственный»
+  const rolesSnap = await get(ref(db, "roles"));
+  const staffRoles = rolesSnap.val() || {};
+  const staffList = await Promise.all(
+    Object.entries(staffRoles)
+      .filter(([, r]) => r === "staff" || r === "admin")
+      .map(async ([uid]) => {
+        const u = (await get(ref(db, `users/${uid}`))).val() || {};
+        return { uid, name: u.displayName || u.email || uid.slice(0, 6) };
+      })
+  );
 
   let cats = Object.keys(categories);
   if (role === "staff") {
@@ -710,10 +1236,14 @@ async function mountQueue(view) {
   }
 
   const items = new Map();
+  const search = view.querySelector("#queue-search");
 
-  const applyFilter = () => {
+  const applyFilters = () => {
+    const s = (search.value || "").toLowerCase().trim();
     for (const { node } of items.values()) {
-      node.hidden = filter !== "all" && node.dataset.status !== filter;
+      const st = filter !== "all" && node.dataset.status !== filter;
+      const sq = s && !(node.dataset.search || "").includes(s);
+      node.hidden = st || sq;
     }
   };
 
@@ -721,10 +1251,10 @@ async function mountQueue(view) {
     const b = e.target.closest("button[data-f]");
     if (!b) return;
     filter = b.dataset.f;
-    [...view.querySelectorAll(".filter button")]
-      .forEach(x => x.classList.toggle("active", x === b));
-    applyFilter();
+    [...view.querySelectorAll(".filter button")].forEach(x => x.classList.toggle("active", x === b));
+    applyFilters();
   };
+  search.oninput = applyFilters;
 
   for (const cat of cats) {
     const block = document.createElement("section");
@@ -750,36 +1280,43 @@ async function mountQueue(view) {
         list.append(node);
         const unsub = onValue(ref(db, `applications/${id}`), s => {
           const a = s.val();
-          if (a) node.dataset.status = a.status;
-          renderAppCard(node, a, id, { staff: true });
-          applyFilter();
+          if (a) {
+            node.dataset.status = a.status;
+            node.dataset.search = (
+              shortId(id) + " " + id + " " +
+              (a.authorName || "") + " " + (a.fields?.subject || "") + " " +
+              Object.values(a.fields || {}).join(" ")
+            ).toLowerCase();
+          }
+          renderAppCard(node, a, id, { staff: true, staffList });
+          applyFilters();
         });
         items.set(id, { node, unsub });
       }
+      applyFilters();
     }));
   }
 
   q.addEventListener("submit", onReply);
+  q.addEventListener("submit", onNote);
   q.addEventListener("change", onStatusChange);
+  q.addEventListener("change", onAssigneeChange);
+  q.addEventListener("change", onCategoryChange);
   q.addEventListener("click", e => {
     const b = e.target.closest("[data-del-id]");
     if (b) deleteApplication(b.dataset.delId);
   });
 }
 
-/* ==================== ВЫДАЧА ДОКУМЕНТОВ ==================== */
+/* ═══════════════ ВЫДАЧА ДОКУМЕНТОВ ═══════════════ */
 
 function mountIssueDoc(view) {
   view.innerHTML = `
     <h2>Выдача документов</h2>
-    <p class="muted">
-      Выберите гражданина и заполните данные документа. Он появится в его разделе «Мои документы» с пометкой 🏛️.
-    </p>
+    <p class="muted">Выберите гражданина и заполните данные документа. Он появится в его разделе «Мои документы» с пометкой 🏛️.</p>
     <div class="card">
       <form id="f-doc">
-        <label><span>Пользователь</span>
-          <select name="uid" id="doc-uid" required></select>
-        </label>
+        <label><span>Пользователь</span><select name="uid" id="doc-uid" required></select></label>
         <label><span>Тип</span>
           <select name="type" required>
             ${Object.entries(DOC_TYPES).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}
@@ -818,27 +1355,19 @@ function mountIssueDoc(view) {
     const id  = push(ref(db, `userDocs/${uid}`)).key;
     try {
       await set(ref(db, `userDocs/${uid}/${id}`), {
-        type:       fd.get("type"),
-        title:      fd.get("title").trim(),
-        number:     fd.get("number").trim()    || null,
-        issuedAt:   fd.get("issuedAt"),
-        issuedBy:   fd.get("issuedBy").trim()  || null,
-        validUntil: fd.get("validUntil")       || null,
-        status:     fd.get("status"),
-        notes:      fd.get("notes").trim()     || null,
-        addedBy:    "staff",
-        createdAt:  Date.now(),
-        createdBy:  me.uid
+        type: fd.get("type"), title: fd.get("title").trim(),
+        number: fd.get("number").trim() || null, issuedAt: fd.get("issuedAt"),
+        issuedBy: fd.get("issuedBy").trim() || null, validUntil: fd.get("validUntil") || null,
+        status: fd.get("status"), notes: fd.get("notes").trim() || null,
+        addedBy: "staff", createdAt: Date.now(), createdBy: me.uid
       });
       e.target.reset();
       view.querySelector("#e-doc").textContent = "";
-    } catch (err) {
-      view.querySelector("#e-doc").textContent = "Ошибка: " + err.message;
-    }
+    } catch (err) { view.querySelector("#e-doc").textContent = "Ошибка: " + err.message; }
   };
 }
 
-/* ==================== АДМИНКА ==================== */
+/* ═══════════════ АДМИНКА ═══════════════ */
 
 function mountAdmin(view) {
   view.innerHTML = `
@@ -846,10 +1375,7 @@ function mountAdmin(view) {
 
     <section class="card">
       <h3>Стандартные категории</h3>
-      <p class="muted">
-        Заполнит/перезапишет категории ЖакидУслуг (суд, МинТруд, регистрация, грант,
-        проверка, военнослужащие). Существующие заявления не пострадают.
-      </p>
+      <p class="muted">Заполнит/перезапишет категории ЖакидУслуг. Существующие заявления не пострадают.</p>
       <button id="seed-cats" class="primary mini">Установить стандартные категории</button>
       <p class="ok" id="seed-msg"></p>
     </section>
@@ -866,25 +1392,57 @@ function mountAdmin(view) {
     </section>
 
     <section class="card admin-section">
+      <h3>📰 Новости правительства</h3>
+      <form id="f-news">
+        <label><span>Заголовок</span><input name="title" required></label>
+        <label><span>Текст</span><textarea name="body" rows="4" required></textarea></label>
+        <label style="display:flex;gap:8px;align-items:center;">
+          <input type="checkbox" name="pinned" style="width:auto;">
+          <span>📌 Закрепить (показывать первой)</span>
+        </label>
+        <button class="primary mini">Опубликовать</button>
+      </form>
+      <ul id="news-list"></ul>
+    </section>
+
+    <section class="card admin-section">
+      <h3>🔴 Реестр розыска</h3>
+      <form id="f-wanted">
+        <label><span>ФИО</span><input name="name" required></label>
+        <label><span>Причина розыска</span><input name="reason" required></label>
+        <label><span>С какого числа</span><input name="since" type="date" required></label>
+        <label><span>Последнее известное место</span><input name="lastSeen"></label>
+        <label><span>Описание</span><textarea name="description" rows="2"></textarea></label>
+        <label><span>Награда за информацию</span><input name="reward" placeholder="напр. 5000 ₮"></label>
+        <label><span>Статус</span>
+          <select name="status" required>
+            ${Object.entries(WANTED_STATUS).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}
+          </select>
+        </label>
+        <button class="primary mini">Добавить в реестр</button>
+      </form>
+      <ul id="wanted-list-admin"></ul>
+    </section>
+
+    <section class="card admin-section">
       <h3>Пользователи и роли</h3>
       <div id="user-list" class="muted">Загрузка…</div>
       <p class="muted" style="font-size:13px;margin-top:8px;">
-        Роль <b>staff</b> + категории (напр. <code>court, labor, documents</code>) — сотрудник
-        обрабатывает заявления этих категорий. <code>documents</code> — право выдавать документы.
+        Роль <b>staff</b> + категории (напр. <code>court, labor, documents</code>) — сотрудник обрабатывает заявления этих категорий. <code>documents</code> — право выдавать документы.
       </p>
     </section>
   `;
 
+  // ── seed категорий ──
   view.querySelector("#seed-cats").onclick = async () => {
     if (!confirm("Перезаписать все категории стандартным набором?")) return;
     try {
       await set(ref(db, "categories"), DEFAULT_CATEGORIES);
       view.querySelector("#seed-msg").textContent = "✓ Категории установлены.";
-    } catch (e) {
-      view.querySelector("#seed-msg").textContent = "Ошибка: " + e.message;
-    }
+    } catch (e) { view.querySelector("#seed-msg").textContent = "Ошибка: " + e.message; }
   };
 
+  // ── FAQ ──
   view.querySelector("#f-faq").onsubmit = async e => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -892,10 +1450,8 @@ function mountAdmin(view) {
       const snap  = await get(ref(db, "faq"));
       const order = Object.keys(snap.val() || {}).length + 1;
       await push(ref(db, "faq"), {
-        question: fd.get("question").trim(),
-        answer:   fd.get("answer").trim(),
-        order,
-        createdAt: Date.now()
+        question: fd.get("question").trim(), answer: fd.get("answer").trim(),
+        order, createdAt: Date.now()
       });
       e.target.reset();
     } catch (err) { alert(err.message); }
@@ -912,10 +1468,8 @@ function mountAdmin(view) {
     const entries = sortedEntries(snap.val());
     ul.innerHTML = entries.length
       ? entries.map(([id, f]) => `
-          <li>
-            <b>${esc(f.question)}</b> — ${esc(f.answer)}
-            <button class="mini" data-del-faq="${esc(id)}">удалить</button>
-          </li>`).join("")
+          <li><b>${esc(f.question)}</b> — ${esc(f.answer)}
+            <button class="mini" data-del-faq="${esc(id)}">удалить</button></li>`).join("")
       : `<li class="muted">пока нет</li>`;
   }));
 
@@ -927,18 +1481,96 @@ function mountAdmin(view) {
     catch (err) { alert(err.message); }
   };
 
+  // ── новости ──
+  view.querySelector("#f-news").onsubmit = async e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try {
+      await push(ref(db, "news"), {
+        title: fd.get("title").trim(),
+        body: fd.get("body").trim(),
+        pinned: fd.get("pinned") === "on",
+        author: me.displayName || me.email,
+        createdAt: Date.now()
+      });
+      e.target.reset();
+    } catch (err) { alert(err.message); }
+  };
+
+  sub(onValue(ref(db, "news"), snap => {
+    const ul = view.querySelector("#news-list");
+    const items = Object.entries(snap.val() || {})
+      .sort((a, b) => {
+        if (a[1].pinned && !b[1].pinned) return -1;
+        if (!a[1].pinned && b[1].pinned) return 1;
+        return (b[1].createdAt || 0) - (a[1].createdAt || 0);
+      });
+    ul.innerHTML = items.length
+      ? items.map(([id, n]) => `
+          <li><b>${n.pinned ? "📌 " : ""}${esc(n.title)}</b>
+            <div class="muted" style="font-size:13px;">${fmt(n.createdAt)}</div>
+            <button class="mini" data-del-news="${esc(id)}">удалить</button>
+          </li>`).join("")
+      : `<li class="muted">пока нет</li>`;
+  }));
+
+  view.querySelector("#news-list").onclick = async e => {
+    const b = e.target.closest("[data-del-news]");
+    if (!b) return;
+    if (!confirm("Удалить новость?")) return;
+    try { await remove(ref(db, `news/${b.dataset.delNews}`)); }
+    catch (err) { alert(err.message); }
+  };
+
+  // ── розыск ──
+  view.querySelector("#f-wanted").onsubmit = async e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try {
+      await push(ref(db, "wanted"), {
+        name: fd.get("name").trim(),
+        reason: fd.get("reason").trim(),
+        since: fd.get("since"),
+        lastSeen: fd.get("lastSeen").trim() || null,
+        description: fd.get("description").trim() || null,
+        reward: fd.get("reward").trim() || null,
+        status: fd.get("status"),
+        createdAt: Date.now(),
+        createdBy: me.uid
+      });
+      e.target.reset();
+    } catch (err) { alert(err.message); }
+  };
+
+  sub(onValue(ref(db, "wanted"), snap => {
+    const ul = view.querySelector("#wanted-list-admin");
+    const items = Object.entries(snap.val() || {});
+    ul.innerHTML = items.length
+      ? items.map(([id, w]) => `
+          <li><b>${esc(w.name)}</b> · ${WANTED_STATUS[w.status] || esc(w.status)}
+            <button class="mini" data-del-wanted="${esc(id)}">удалить</button></li>`).join("")
+      : `<li class="muted">пока нет</li>`;
+  }));
+
+  view.querySelector("#wanted-list-admin").onclick = async e => {
+    const b = e.target.closest("[data-del-wanted]");
+    if (!b) return;
+    if (!confirm("Удалить из розыска?")) return;
+    try { await remove(ref(db, `wanted/${b.dataset.delWanted}`)); }
+    catch (err) { alert(err.message); }
+  };
+
+  // ── пользователи / роли ──
   let users = {}, roles = {}, scats = {};
 
   const paintUsers = () => {
     const box = view.querySelector("#user-list");
     const entries = Object.entries(users);
     if (!entries.length) { box.textContent = "Пока никто не зарегистрировался."; return; }
-
     box.innerHTML = entries.map(([uid, u]) => {
       const r    = roles[uid] || "user";
       const cats = Object.keys(scats[uid] || {}).join(", ");
       const self = uid === me.uid;
-
       return `<div class="user-row">
         <div><b>${esc(u.displayName || "—")}</b><br><small>${esc(u.email || "")}</small></div>
         ${self
@@ -948,8 +1580,7 @@ function mountAdmin(view) {
                  `<option value="${x}" ${r === x ? "selected" : ""}>${ROLE_RU[x]}</option>`).join("")}
              </select>`}
         <input class="cat-inp" data-uid="${esc(uid)}"
-               placeholder="категории через запятую"
-               value="${esc(cats)}">
+               placeholder="категории через запятую" value="${esc(cats)}">
       </div>`;
     }).join("");
   };
@@ -966,8 +1597,7 @@ function mountAdmin(view) {
       } else if (t.classList.contains("cat-inp")) {
         const obj = {};
         t.value.split(",").map(x => x.trim()).filter(Boolean).forEach(c => { obj[c] = true; });
-        await set(ref(db, `staffCategories/${t.dataset.uid}`),
-          Object.keys(obj).length ? obj : null);
+        await set(ref(db, `staffCategories/${t.dataset.uid}`), Object.keys(obj).length ? obj : null);
       }
     } catch (err) { alert(err.message); }
   };
